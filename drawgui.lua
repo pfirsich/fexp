@@ -1,4 +1,5 @@
 local gui = require("gui")
+local input = require("input")
 
 local lg = love.graphics
 local floor = math.floor
@@ -11,11 +12,12 @@ function drawElements(elements, x, y, w, h)
     lg.setScissor()
 end
 
-function textRegion(text, x, y, w, h, padding)
+function textRegion(text, x, y, w, h, padding, offsetX)
     padding = padding or 5
+    offsetX = offsetX or 0
     x, y, w, h = floor(x), floor(y), floor(w), floor(h)
     lg.setScissor(x + padding, y + padding, w - padding*2, h - padding*2)
-    lg.print(text, x + padding, floor(y + h/2 - lg.getFont():getHeight() / 2))
+    lg.print(text, x + padding + offsetX, floor(y + h/2 - lg.getFont():getHeight() / 2))
     lg.setScissor()
 end
 
@@ -72,6 +74,43 @@ function drawPane(pane, x, y, w, h)
             local text = "No open tabs."
             local tx, ty = x + w/2 - font:getWidth(text)/2, y + h/2 - font:getHeight()/2
             lg.print("No open tabs.", math.floor(tx), math.floor(ty))
+        end
+
+        if paneSelected and input.isActive() then
+            local numEntries = 10
+            local inputW = 0.8 * w
+            local inputY = y + 70
+            local lineHeight = 30
+            local inputH = (numEntries + 1) * lineHeight
+            local inputX = x + w/2 - inputW/2
+            lg.setColor(0.3, 0.3, 0.3)
+            lg.rectangle("fill", inputX, inputY, inputW, inputH)
+            lg.setColor(1, 1, 1)
+            textRegion(input.text, inputX, inputY, inputW, lineHeight)
+            local entryY = inputY + lineHeight
+            lg.line(inputX, entryY, inputX + inputW, entryY)
+
+            for i = 1, #input.entries do
+                local entry = input.entries[i]
+                if input.selectedEntry == i then
+                    lg.setColor(0.4, 0.4, 0.4)
+                    lg.rectangle("fill", inputX, entryY, inputW, lineHeight)
+                end
+
+                if entry.annotation then
+                    local annotOffset = inputW - font:getWidth(entry.annotation) - 10
+                    lg.setColor(0.7, 0.7, 0.7)
+                    textRegion(entry.annotation, inputX, entryY, inputW, lineHeight, nil, annotOffset)
+                end
+
+                lg.setColor(1, 1, 1)
+                textRegion(entry.caption, inputX, entryY, inputW, lineHeight)
+
+                entryY = entryY + lineHeight
+                if i >= numEntries then
+                    break
+                end
+            end
         end
     else
         assert(pane.splitType == "h" or pane.splitType == "v")

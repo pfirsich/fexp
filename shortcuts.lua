@@ -1,4 +1,3 @@
-local time = require("time")
 local commands = require("commands")
 local functional = require("functional")
 

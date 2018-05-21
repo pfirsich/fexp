@@ -2,6 +2,8 @@ inspect = require("libs.inspect")
 local shortcuts = require("shortcuts")
 local gui = require("gui")
 local drawgui = require("drawgui")
+local inputcommands = require("inputcommands")
+local input = require("input")
 
 local lg = love.graphics
 
@@ -10,6 +12,7 @@ function love.load()
     shortcuts.register({"ctrl+k", "ctrl+l"}, "print", {str = "pressed ctrl+k, ctrl+l"})
     shortcuts.register("ctrl+d", "hello")
     shortcuts.register("ctrl+e", "print")
+    inputcommands.register("Print something in console", "print", {str = "something"})
 
     shortcuts.register({"ctrl+k", "up"}, "splitpane", {dir = "up"})
     shortcuts.register({"ctrl+k", "down"}, "splitpane", {dir = "down"})
@@ -39,8 +42,10 @@ function love.load()
     shortcuts.register("ctrl+tab", "nexttab")
     shortcuts.register("ctrl+shift+tab", "prevtab")
 
-    shortcuts.register("tab", "print", {str = "palette"})
-    shortcuts.register({"space", "tab"}, "print", {str = "space"})
+    shortcuts.register("tab", "togglefilesysteminput")
+    shortcuts.register("ctrl+space", "togglecommandinput")
+
+    inputcommands.updateShortcutAnnotations()
 
     gui.init()
 end
@@ -50,5 +55,15 @@ function love.draw()
 end
 
 function love.keypressed(key)
-    shortcuts.keypressed(key)
+    if input.isActive() then
+        input.keypressed(key)
+    else
+        shortcuts.keypressed(key)
+    end
+end
+
+function love.textinput(text)
+    if input.isActive() then
+        input.textinput(text)
+    end
 end

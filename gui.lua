@@ -1,4 +1,5 @@
 local commands = require("commands")
+local inputcommands = require("inputcommands")
 
 local gui = {}
 
@@ -16,7 +17,7 @@ function gui.init()
     gui.selectedPane = gui.rootPane
 end
 
-function moveTab(fromPane, toPane, tabIndex)
+local function moveTab(fromPane, toPane, tabIndex)
     table.insert(toPane.tabs, fromPane.tabs[tabIndex])
     toPane.selectedTabIndex = #toPane.tabs
 
@@ -24,7 +25,7 @@ function moveTab(fromPane, toPane, tabIndex)
     fromPane.selectedTabIndex = math.max(1, math.min(#fromPane.tabs, tabIndex))
 end
 
-function checkDir(dir)
+local function checkDir(dir)
     if dir ~= "left" and dir ~= "right" and dir ~= "up" and dir ~= "down" then
         print(("Unknown direction '%s' for splitPane!"):format(dir))
         return false
@@ -70,10 +71,20 @@ function gui.splitPane(dir, carryTab)
     gui.selectedPane.tabs = nil
     gui.selectedPane = newPane
 end
+
 commands.register("splitpane", commands.wrap(gui.splitPane, {"dir", "carryTab"}),
     {"dir"}, {carryTab = false})
 
-function getRelativePane(pane, dir, secondaryCall)
+inputcommands.register("Split Pane Up", "splitpane", {dir = "up"})
+inputcommands.register("Split Pane Down", "splitpane", {dir = "down"})
+inputcommands.register("Split Pane Left", "splitpane", {dir = "left"})
+inputcommands.register("Split Pane Right", "splitpane", {dir = "right"})
+inputcommands.register("Split Pane Up (Carry Tab)", "splitpane", {dir = "up", carryTab = true})
+inputcommands.register("Split Pane Down (Carry Tab)", "splitpane", {dir = "down", carryTab = true})
+inputcommands.register("Split Pane Left (Carry Tab)", "splitpane", {dir = "left", carryTab = true})
+inputcommands.register("Split Pane Right (Carry Tab)", "splitpane", {dir = "right", carryTab = true})
+
+local function getRelativePane(pane, dir, secondaryCall)
     local parent = pane.parent
     if parent == nil then
         return nil
@@ -132,7 +143,16 @@ end
 commands.register("movepane", commands.wrap(gui.movePane, {"dir", "carryTab"}),
     {"dir"}, {carryTab = false})
 
-function removePane(pane)
+inputcommands.register("Move Pane Up", "movepane", {dir = "up"})
+inputcommands.register("Move Pane Down", "movepane", {dir = "down"})
+inputcommands.register("Move Pane Left", "movepane", {dir = "left"})
+inputcommands.register("Move Pane Right", "movepane", {dir = "right"})
+inputcommands.register("Move Pane Up (Carry Tab)", "movepane", {dir = "up", carryTab = true})
+inputcommands.register("Move Pane Down (Carry Tab)", "movepane", {dir = "down", carryTab = true})
+inputcommands.register("Move Pane Left (Carry Tab)", "movepane", {dir = "left", carryTab = true})
+inputcommands.register("Move Pane Right (Carry Tab)", "movepane", {dir = "right", carryTab = true})
+
+local function removePane(pane)
     local parent = pane.parent
     if parent then
         local sibling = nil
@@ -149,7 +169,7 @@ function removePane(pane)
     end
 end
 
-function mergePaneInto(pane, destPane)
+local function mergePaneInto(pane, destPane)
     destPane.selectedTabIndex = pane.selectedTabIndex + #destPane.tabs
     for _, tab in ipairs(pane.tabs) do
         table.insert(destPane.tabs, tab)
@@ -170,6 +190,11 @@ function gui.mergePane(dir)
 end
 commands.register("mergepane", commands.wrap(gui.mergePane, {"dir"}), {"dir"})
 
+inputcommands.register("Merge Pane Up", "mergepane", {dir = "up"})
+inputcommands.register("Merge Pane Down", "mergepane", {dir = "down"})
+inputcommands.register("Merge Pane Left", "mergepane", {dir = "left"})
+inputcommands.register("Merge Pane Right", "mergepane", {dir = "down"})
+
 function gui.newTab()
     local pane = pane or gui.selectedPane
     local tab = {
@@ -181,6 +206,8 @@ function gui.newTab()
     pane.selectedTabIndex = #pane.tabs
 end
 commands.register("newtab", gui.newTab)
+
+inputcommands.register("New Tab", "newtab")
 
 function gui.closeTab(tabIndex)
     local pane = pane or gui.selectedPane
@@ -195,6 +222,8 @@ function gui.closeTab(tabIndex)
     end
 end
 commands.register("closetab", commands.wrap(gui.closeTab, {"tabIndex"}))
+
+inputcommands.register("Close Tab", "closetab")
 
 function gui.selectTab(tabIndex, pane)
     pane = pane or gui.selectedPane
@@ -211,6 +240,8 @@ function gui.nextTab()
 end
 commands.register("nexttab", gui.nextTab)
 
+inputcommands.register("Next Tab", "nexttab")
+
 function gui.prevTab()
     local pane = pane or gui.selectedPane
     pane.selectedTabIndex = pane.selectedTabIndex - 1
@@ -220,9 +251,6 @@ function gui.prevTab()
 end
 commands.register("prevtab", gui.prevTab)
 
-function gui.focusPathLine()
-    local pane = pane or gui.selectedPane
-    -- blabla
-end
+inputcommands.register("Previous Tab", "prevtab")
 
 return gui
