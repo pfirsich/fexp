@@ -67,6 +67,7 @@ function shortcuts.keypressed(key)
         table.remove(inputHistory, 1)
     end
 
+    local matchingShortcut = nil
     for _, shortcut in ipairs(shortcuts.map) do
         local sequenceLen = #shortcut.shortcut
         if #inputHistory >= sequenceLen then
@@ -79,9 +80,16 @@ function shortcuts.keypressed(key)
                 end
             end
             if match then
-                commands.exec(shortcut.command, shortcut.arguments)
+                -- match longest match
+                if not matchingShortcut or #matchingShortcut.shortcut < sequenceLen then
+                    matchingShortcut = shortcut
+                end
             end
         end
+    end
+
+    if matchingShortcut then
+        commands.exec(matchingShortcut.command, matchingShortcut.arguments)
     end
 end
 

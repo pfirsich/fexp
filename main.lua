@@ -39,7 +39,8 @@ function love.load()
     shortcuts.register("ctrl+tab", "nexttab")
     shortcuts.register("ctrl+shift+tab", "prevtab")
 
-    shortcuts.register("tab", "focuspathline")
+    shortcuts.register("tab", "print", {str = "palette"})
+    shortcuts.register({"space", "tab"}, "print", {str = "space"})
 
     gui.init()
 end
