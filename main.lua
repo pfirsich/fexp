@@ -63,7 +63,9 @@ function love.keypressed(key)
 end
 
 function love.textinput(text)
-    if input.isActive() then
+    local ctrl = love.keyboard.isDown("lctrl") or love.keyboard.isDown("rctrl")
+    local alt = love.keyboard.isDown("lalt") or love.keyboard.isDown("ralt")
+    if not ctrl and not alt and input.isActive() then
         input.textinput(text)
     end
 end

@@ -17,7 +17,12 @@ function textRegion(text, x, y, w, h, padding, offsetX)
     offsetX = offsetX or 0
     x, y, w, h = floor(x), floor(y), floor(w), floor(h)
     lg.setScissor(x + padding, y + padding, w - padding*2, h - padding*2)
-    lg.print(text, x + padding + offsetX, floor(y + h/2 - lg.getFont():getHeight() / 2))
+    local tx, ty = x + padding + offsetX, floor(y + h/2 - lg.getFont():getHeight() / 2)
+    if type(text) == "string" then
+        lg.print(text, tx, ty)
+    else
+        lg.printf(text, tx, ty, 10000)
+    end
     lg.setScissor()
 end
 
@@ -90,25 +95,31 @@ function drawPane(pane, x, y, w, h)
             local entryY = inputY + lineHeight
             lg.line(inputX, entryY, inputX + inputW, entryY)
 
+            local entriesDrawn = 0
             for i = 1, #input.entries do
                 local entry = input.entries[i]
-                if input.selectedEntry == i then
-                    lg.setColor(0.4, 0.4, 0.4)
-                    lg.rectangle("fill", inputX, entryY, inputW, lineHeight)
-                end
 
-                if entry.annotation then
-                    local annotOffset = inputW - font:getWidth(entry.annotation) - 10
-                    lg.setColor(0.7, 0.7, 0.7)
-                    textRegion(entry.annotation, inputX, entryY, inputW, lineHeight, nil, annotOffset)
-                end
+                if entry.visible then
+                    if input.selectedEntry == i then
+                        lg.setColor(0.4, 0.4, 0.4)
+                        lg.rectangle("fill", inputX, entryY, inputW, lineHeight)
+                    end
 
-                lg.setColor(1, 1, 1)
-                textRegion(entry.caption, inputX, entryY, inputW, lineHeight)
+                    if entry.annotation then
+                        local annotOffset = inputW - font:getWidth(entry.annotation) - 10
+                        lg.setColor(0.7, 0.7, 0.7)
+                        textRegion(entry.annotation, inputX, entryY, inputW, lineHeight, nil, annotOffset)
+                    end
 
-                entryY = entryY + lineHeight
-                if i >= numEntries then
-                    break
+                    lg.setColor(1, 1, 1)
+                    textRegion(entry.coloredText, inputX, entryY, inputW, lineHeight)
+
+                    entryY = entryY + lineHeight
+
+                    entriesDrawn = entriesDrawn + 1
+                    if entriesDrawn >= numEntries then
+                        break
+                    end
                 end
             end
         end
