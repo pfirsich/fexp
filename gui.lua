@@ -202,8 +202,18 @@ local function removePane(pane)
             sibling = parent.children[2]
         end
 
-        parent.tabs = sibling.tabs
-        parent.selectedTabIndex = sibling.selectedTabIndex
+        -- replace parent with sibling
+        if parent.parent then
+            if parent.parent.children[1] == parent then
+                parent.parent.children[1] = sibling
+            else
+                parent.parent.children[2] = sibling
+            end
+            sibling.parent = parent.parent
+        else
+            gui.rootPane = sibling
+            sibling.parent = nil
+        end
     else
         print("Cannot remove root pane!")
     end
@@ -229,7 +239,6 @@ function gui.mergePane(dir)
     end
 end
 commands.register("mergepane", commands.wrap(gui.mergePane, {"dir"}), {"dir"})
-
 inputcommands.register("Merge Pane Up", "mergepane", {dir = "up"})
 inputcommands.register("Merge Pane Down", "mergepane", {dir = "down"})
 inputcommands.register("Merge Pane Left", "mergepane", {dir = "left"})
@@ -371,7 +380,7 @@ function gui.gotoItemPrompt(text)
         input.toggle(entries, text)
     end
 end
-commands.register("gotoitemprompt", commands.wrap(gui.gotoItem, {"text"}))
+commands.register("gotoitemprompt", commands.wrap(gui.gotoItemPrompt, {"text"}))
 
 function gui.toggleItemSelection()
     local tab = gui.getSelectedTab()
