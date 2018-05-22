@@ -5,18 +5,17 @@ local gui = require("gui")
 local drawgui = require("drawgui")
 local inputcommands = require("inputcommands")
 local input = require("input")
-local filesystem = require("commands.filesystem")
 
 local lg = love.graphics
 
 commands.register("quit", love.event.quit)
 
 function love.load()
-    shortcuts.register("ctrl+s", "print", {str = "pressed ctrl+s"})
-    shortcuts.register({"ctrl+k", "ctrl+l"}, "print", {str = "pressed ctrl+k, ctrl+l"})
-    shortcuts.register("ctrl+d", "hello")
-    shortcuts.register("ctrl+e", "print")
-    inputcommands.register("Print something in console", "print", {str = "something"})
+    for _, file in ipairs(love.filesystem.getDirectoryItems("commands")) do
+        if file ~= "init.lua" then
+            require("commands." .. file:sub(1, file:len() - 4))
+        end
+    end
 
     shortcuts.register({"ctrl+k", "up"}, "splitpane", {dir = "up"})
     shortcuts.register({"ctrl+k", "down"}, "splitpane", {dir = "down"})
@@ -54,7 +53,14 @@ function love.load()
     shortcuts.register("down", "moveitemcursor", {delta = 1})
     shortcuts.register("pageup", "moveitemcursor", {delta = -8})
     shortcuts.register("pagedown", "moveitemcursor", {delta = 8})
+
     shortcuts.register("space", "toggleitemselection")
+    shortcuts.register("a", "toggleitemselectall")
+    shortcuts.register("return", "execitems")
+
+    shortcuts.register({"ctrl+f", "g"}, "filterglobprompt")
+    shortcuts.register({"ctrl+f", "s"}, "filterselected")
+    shortcuts.register({"ctrl+f", "q"}, "filterqueryprompt")
 
     inputcommands.register("Bookmark: Home", "enumeratepath", {path = "C:/Users/Joel"})
 

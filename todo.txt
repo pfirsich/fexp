@@ -4,13 +4,18 @@
 * Remove "escapeNonAscii" function and somehow handle it properly
     My locale encoding (1252) on Windows makes löve error in lg.print
     I either need to convert it to utf-8, or keep stripping like I am now
-    At least move it to filesystem.lua
 * Tab view
-    - Include meta data
-    - Open file
+    - Show metadata in columns, including moddate, maybe make them togglable via command?
 * File operations
-    - filter / glob
     - rename
     - copy
     - paste
+    - mkdir
+* Conceptual Revamp
+    - Introduce the notion of a current directory and only make items be filtered out/in
+* Commands
+    - execute item in new tab
+    - execute item in new pane
+* Bugs
+    - fix prompt/input that spawns a prompt being closed immediately
 * Optimize rendering (only rerender if something changed) and only render panes that changed

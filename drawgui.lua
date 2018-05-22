@@ -7,21 +7,6 @@ local floor = math.floor
 
 local drawgui = {}
 
-local function escapeNonAscii(str)
-    if type(str) ~= "string" then
-        return str
-    end
-    local ret = ""
-    for i = 1, str:len() do
-        if str:byte(i) > 127 then
-            ret = ret .. "?"
-        else
-            ret = ret .. str:sub(i, i)
-        end
-    end
-    return ret
-end
-
 function drawTabItems(tab, x, y, w, h)
     local font = lg.getFont()
     local fontHeight = font:getHeight()
@@ -54,8 +39,18 @@ function drawTabItems(tab, x, y, w, h)
             lg.setColor(1, 1, 1, 0.4)
             lg.rectangle("fill", x, elemY, w, lineHeight)
         end
+        lg.setColor(0.1, 0.1, 0.1)
+        lg.rectangle("line", x, elemY, w, lineHeight)
+
         lg.setColor(1, 1, 1)
-        lg.print(escapeNonAscii(item.caption), floor(x + 5), floor(elemY + lineHeight/2 - fontHeight/2))
+        local text = item.caption
+        if item.columns.type == "directory" then
+            lg.setColor(1.0, 0.8, 0.8)
+        elseif item.columns.type == "file" then
+            lg.setColor(0.8, 1.0, 0.8)
+            text = ("%s (%s)"):format(item.caption, item.columns.size)
+        end
+        lg.print(text, floor(x + 5), floor(elemY + lineHeight/2 - fontHeight/2))
         elemY = elemY + lineHeight
     end
     lg.setScissor()
@@ -68,9 +63,9 @@ function textRegion(text, x, y, w, h, padding, offsetX)
     lg.setScissor(x + padding, y + padding, w - padding*2, h - padding*2)
     local tx, ty = x + padding + offsetX, floor(y + h/2 - lg.getFont():getHeight() / 2)
     if type(text) == "string" then
-        lg.print(escapeNonAscii(text), tx, ty)
+        lg.print(text, tx, ty)
     elseif type(text) == "table" then
-        lg.printf(functional.map(escapeNonAscii, text), tx, ty, 10000)
+        lg.printf(text, tx, ty, 10000)
     end
     lg.setScissor()
 end
@@ -137,6 +132,7 @@ function drawPane(pane, x, y, w, h)
             local lineHeight = 30
             local inputH = (numEntries + 1) * lineHeight
             local inputX = x + w/2 - inputW/2
+
             lg.setColor(0.3, 0.3, 0.3)
             lg.rectangle("fill", inputX, inputY, inputW, inputH)
             lg.setColor(1, 1, 1)

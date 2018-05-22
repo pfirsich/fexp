@@ -143,7 +143,6 @@ function gui.movePane(dir, carryTab)
 end
 commands.register("movepane", commands.wrap(gui.movePane, {"dir", "carryTab"}),
     {"dir"}, {carryTab = false})
-
 inputcommands.register("Move Pane Up", "movepane", {dir = "up"})
 inputcommands.register("Move Pane Down", "movepane", {dir = "down"})
 inputcommands.register("Move Pane Left", "movepane", {dir = "left"})
@@ -212,7 +211,6 @@ function gui.newTab()
     pane.selectedTabIndex = #pane.tabs
 end
 commands.register("newtab", gui.newTab)
-
 inputcommands.register("New Tab", "newtab")
 
 function gui.closeTab(tabIndex)
@@ -228,7 +226,6 @@ function gui.closeTab(tabIndex)
     end
 end
 commands.register("closetab", commands.wrap(gui.closeTab, {"tabIndex"}))
-
 inputcommands.register("Close Tab", "closetab")
 
 function gui.selectTab(tabIndex, pane)
@@ -245,7 +242,6 @@ function gui.nextTab()
     end
 end
 commands.register("nexttab", gui.nextTab)
-
 inputcommands.register("Next Tab", "nexttab")
 
 function gui.prevTab()
@@ -256,7 +252,6 @@ function gui.prevTab()
     end
 end
 commands.register("prevtab", gui.prevTab)
-
 inputcommands.register("Previous Tab", "prevtab")
 
 function gui.renameTab(newName)
@@ -279,7 +274,6 @@ function gui.renameTabPrompt()
     end
 end
 commands.register("renametabprompt", gui.renameTabPrompt)
-
 inputcommands.register("Rename Tab", "renametabprompt")
 
 function gui.moveItemCursor(delta)
@@ -291,6 +285,15 @@ function gui.moveItemCursor(delta)
 end
 commands.register("moveitemcursor", commands.wrap(gui.moveItemCursor, {"delta"}), {"delta"})
 
+function gui.seekItemCursor(pos)
+    local tab = gui.getSelectedTab()
+    if tab then
+        tab.itemCursor = pos
+        tab.itemCursor = math.max(1, math.min(#tab.items, tab.itemCursor))
+    end
+end
+commands.register("seekitemcursor", commands.wrap(gui.seekItemCursor, {"pos"}), {"pos"})
+
 function gui.toggleItemSelection()
     local tab = gui.getSelectedTab()
     if tab then
@@ -299,5 +302,70 @@ function gui.toggleItemSelection()
     end
 end
 commands.register("toggleitemselection", gui.toggleItemSelection)
+
+function gui.toggleItemSelectAll()
+    local tab = gui.getSelectedTab()
+    if tab then
+        local selected = 0
+        for _, item in ipairs(tab.items) do
+            if item.selected then
+                selected = selected + 1
+            end
+        end
+
+        local selectAll = selected < #tab.items - 1
+        for _, item in ipairs(tab.items) do
+            if item.caption ~= ".." then
+                item.selected = selectAll
+            end
+        end
+    end
+end
+commands.register("toggleitemselectall", gui.toggleItemSelectAll)
+
+function gui.getItemSelection()
+    local tab = gui.getSelectedTab()
+    if tab then
+        local ret = {}
+        for _, item in ipairs(tab.items) do
+            if item.selected then
+                table.insert(ret, item)
+            end
+        end
+
+        if #ret == 0 then
+            tab.items[tab.itemCursor].selected = true
+            return {tab.items[tab.itemCursor]}
+        else
+            return ret
+        end
+    end
+    return nil
+end
+
+function gui.execItems()
+    local selection = gui.getItemSelection()
+    if selection then
+        if #selection == 1 then
+            commands.exec(selection[1].command, selection[1].arguments)
+        else
+            local onlyFile = true
+            for _, item in ipairs(selection) do
+                if item.columns.type ~= "file" then
+                    onlyFile = false
+                    break
+                end
+            end
+
+            if onlyFile then
+                for _, item in ipairs(selection) do
+                    commands.exec(item.command, item.arguments)
+                end
+            end
+        end
+    end
+end
+commands.register("execitems", gui.execItems)
+inputcommands.register("Execute Selected Items", "execitem")
 
 return gui

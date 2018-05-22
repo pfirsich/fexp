@@ -18,4 +18,14 @@ function functional.filter(func, tbl)
     return ret
 end
 
+function functional.filterl(func, lst)
+    local ret = {}
+    for _, v in pairs(lst) do
+        if func(v) then
+            table.insert(ret, v)
+        end
+    end
+    return ret
+end
+
 return functional

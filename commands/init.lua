@@ -49,4 +49,6 @@ commands.register("print", function(args)
     print(args.str)
 end, {"str"})
 
+commands.register("nop", function() end)
+
 return commands
