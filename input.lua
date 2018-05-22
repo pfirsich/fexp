@@ -107,7 +107,7 @@ end
 local function entryCmp(a, b)
     if a.matchScore == nil then return false end
     if b.matchScore == nil then return true end
-    return a.matchScore >= b.matchScore
+    return a.matchScore > b.matchScore
 end
 
 local function makeColoredText(matchParts)
@@ -142,10 +142,6 @@ local function updateInputEntryVisibility()
         end
     end
     sort(input.entries, entryCmp)
---[[    print(">>> sorted")
-    for _, entry in ipairs(input.entries) do
-        print(entry.caption, entry.matchScore, inspect(entry.matchingIndices))
-    end--]]
 
     -- select first visible (best match)
     input.selectedEntry = nil

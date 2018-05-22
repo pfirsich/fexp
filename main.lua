@@ -69,7 +69,7 @@ function love.load()
 
     inputcommands.register("Quit", "quit")
 
-    inputcommands.updateShortcutAnnotations()
+    inputcommands.finalize()
 
     love.keyboard.setKeyRepeat(true)
 

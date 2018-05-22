@@ -1,6 +1,7 @@
 local shortcuts = require("shortcuts")
 local commands = require("commands")
 local input = require("input")
+local sort = require("sort")
 
 local inputcommands = {}
 
@@ -34,7 +35,8 @@ function tableEqual(a, b)
     return true
 end
 
-function inputcommands.updateShortcutAnnotations()
+function inputcommands.finalize()
+    -- update shortcut annotations
     for _, command in ipairs(inputcommands.commands) do
         for _, shortcut in ipairs(shortcuts.map) do
             if not command.annotation and command.command == shortcut.command and
@@ -47,6 +49,11 @@ function inputcommands.updateShortcutAnnotations()
             end
         end
     end
+
+    -- sort
+    sort(inputcommands.commands, function(a, b)
+        return a.caption < b.caption
+    end)
 end
 
 function inputcommands.toggleCommandInput(text)
