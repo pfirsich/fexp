@@ -76,6 +76,17 @@ local function printPaneGraph(pane, depth)
 end
 
 function gui.splitPane(dir, carryTab)
+    if dir == nil then
+        -- pick dir automatically
+        local parent = gui.selectedPane.parent
+        if parent == nil then
+            dir = "right"
+        else
+            local dirMap = {v = "right", h = "down"}
+            dir = dirMap[parent.splitType]
+        end
+    end
+
     if not checkDir(dir) then
         return
     end
@@ -431,11 +442,21 @@ function gui.getItemSelection()
     return nil
 end
 
-function gui.execItems()
+function gui.execItems(newTab, newPane)
     local selection = gui.getItemSelection()
     if selection then
+        local exec = false
         if #selection == 1 then
-            commands.exec(selection[1].command, selection[1].arguments)
+            if newPane then
+                gui.splitPane()
+                newTab = true
+            end
+
+            if newTab then
+                gui.newTab()
+            end
+
+            exec = true
         else
             local onlyFile = true
             for _, item in ipairs(selection) do
@@ -445,15 +466,17 @@ function gui.execItems()
                 end
             end
 
-            if onlyFile then
-                for _, item in ipairs(selection) do
-                    commands.exec(item.command, item.arguments)
-                end
+            exec = onlyFile
+        end
+
+        if exec then
+            for _, item in ipairs(selection) do
+                commands.exec(item.command, item.arguments)
             end
         end
     end
 end
-commands.register("execitems", gui.execItems)
+commands.register("execitems", commands.wrap(gui.execItems, {"newTab", "newPane"}))
 inputcommands.register("Execute Selected Items", "execitem")
 
 return gui
