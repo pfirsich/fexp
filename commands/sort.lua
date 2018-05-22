@@ -16,6 +16,7 @@ local typeMap = {
     ["char device"] = 6,
     ["block device"] = 7,
     ["other"] = 8,
+    ["n/a"] = 9,
 }
 function cmpFuncs.type(a, b)
     return typeMap[a.columns.type] < typeMap[b.columns.type]

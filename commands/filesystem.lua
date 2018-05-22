@@ -43,7 +43,7 @@ function filesystem.enumeratePath(path)
 
             local item = {
                 caption = escapeNonAscii(file),
-                columns = {type = "n/a", mod = "n/a", size = "n/a"},
+                columns = {type = "n/a", mod = 0, size = 0},
                 arguments = {path = filePath},
             }
 
