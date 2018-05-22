@@ -15,10 +15,7 @@
     - execute item in new tab
     - execute item in new pane
     - refresh (requires current directory too)
-    - Goto Path
 * Bugs
-    - fix prompt/input that spawns a prompt being closed immediately
-        This happens for example when you open a "Filter Glob" prompt via the command palette
 * Path library
     - Especially simplify paths like directory/../other
         This might actually cause bugs for paths like nonexistentdir/../dir

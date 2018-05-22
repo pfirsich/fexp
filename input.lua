@@ -162,18 +162,18 @@ end
 -- only the first entry is drawn and always visible,
 -- the command will receive an additional argument with the input and the name is 'promptArg'
 function input.toggle(entries, text, promptArg)
-    if input.entries then
-        input.entries = nil
-    else
-        input.entries = entries
-        input.text = text or ""
-        input.selectedEntry = 1
-        input.promptArg = promptArg
-        if input.promptArg then
-            input.entries = {entries[1]}
-        end
-        updateInputEntryVisibility()
+    input.entries = entries
+    input.text = text or ""
+    input.selectedEntry = 1
+    input.promptArg = promptArg
+    if input.promptArg then
+        input.entries = {entries[1]}
     end
+    updateInputEntryVisibility()
+
+    -- the only reason this exists is so that we can detect if input.toggle has been called
+    -- while a entry in the input list is being executed (in which case we do not close it)
+    input.toggled = true
 end
 
 local function selectPrevEntry()
@@ -231,8 +231,12 @@ function input.keypressed(key)
         if input.promptArg then
             entry.arguments[input.promptArg] = input.text
         end
+
+        input.toggled = false
         commands.exec(entry.command, entry.arguments)
-        input.entries = nil
+        if not input.toggled then
+            input.entries = nil
+        end
     end
     if key == "backspace" then
         input.text = sub_utf8(input.text, 1, len_utf8(input.text) - 1)
