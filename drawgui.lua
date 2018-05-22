@@ -104,11 +104,9 @@ function drawPane(pane, x, y, w, h)
     if pane.tabs then
         local paneSelected = pane == gui.selectedPane
         if paneSelected then
-            lg.setColor(0, 0, 1.0)
-        else
-            lg.setColor(1.0, 1.0, 1.0)
+            lg.setColor(1.0, 0, 1.0)
+            lg.rectangle("line", x, y, w, h)
         end
-        lg.rectangle("line", x, y, w, h)
 
         local numTabs = #pane.tabs
         local tabWidth = w / numTabs
