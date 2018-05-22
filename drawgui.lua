@@ -1,14 +1,37 @@
 local gui = require("gui")
 local input = require("input")
+local functional = require("functional")
 
 local lg = love.graphics
 local floor = math.floor
 
 local drawgui = {}
 
-function drawElements(elements, x, y, w, h)
+local function escapeNonAscii(str)
+    if type(str) ~= "string" then
+        return str
+    end
+    local ret = ""
+    for i = 1, str:len() do
+        if str:byte(i) > 127 then
+            ret = ret .. "?"
+        else
+            ret = ret .. str:sub(i, i)
+        end
+    end
+    return ret
+end
+
+function drawTabItems(items, x, y, w, h)
+    local font = lg.getFont()
     lg.setScissor(x, y, w, h)
-    -- draw
+    local elemY = y
+    local lineHeight = font:getHeight()
+    lg.setColor(1, 1, 1)
+    for i, item in ipairs(items) do
+        lg.print(escapeNonAscii(item.caption), floor(x + 5), floor(elemY))
+        elemY = elemY + lineHeight
+    end
     lg.setScissor()
 end
 
@@ -19,9 +42,9 @@ function textRegion(text, x, y, w, h, padding, offsetX)
     lg.setScissor(x + padding, y + padding, w - padding*2, h - padding*2)
     local tx, ty = x + padding + offsetX, floor(y + h/2 - lg.getFont():getHeight() / 2)
     if type(text) == "string" then
-        lg.print(text, tx, ty)
-    else
-        lg.printf(text, tx, ty, 10000)
+        lg.print(escapeNonAscii(text), tx, ty)
+    elseif type(text) == "table" then
+        lg.printf(functional.map(escapeNonAscii, text), tx, ty, 10000)
     end
     lg.setScissor()
 end
@@ -69,8 +92,8 @@ function drawPane(pane, x, y, w, h)
                 lg.setColor(0, 0, 0)
                 textRegion(tab.path, x, pathLineY, w, pathLineH)
 
-                local elementsY = pathLineY + pathLineH
-                drawElements(tab.elements, x, elementsY, w, h - (elementsY - y))
+                local itemsY = pathLineY + pathLineH
+                drawTabItems(tab.items, x, itemsY, w, h - (itemsY - y))
             end
         end
 

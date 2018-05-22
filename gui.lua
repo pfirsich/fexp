@@ -195,12 +195,16 @@ inputcommands.register("Merge Pane Down", "mergepane", {dir = "down"})
 inputcommands.register("Merge Pane Left", "mergepane", {dir = "left"})
 inputcommands.register("Merge Pane Right", "mergepane", {dir = "down"})
 
+function gui.getSelectedTab()
+    return gui.selectedPane.tabs[gui.selectedPane.selectedTabIndex]
+end
+
 function gui.newTab()
     local pane = pane or gui.selectedPane
     local tab = {
         title = tostring(love.math.random(10000, 100000)),
         path = "...",
-        elements = {},
+        items = {},
     }
     table.insert(pane.tabs, tab)
     pane.selectedTabIndex = #pane.tabs

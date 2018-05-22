@@ -1,11 +1,15 @@
 inspect = require("libs.inspect")
 local shortcuts = require("shortcuts")
+local commands = require("commands")
 local gui = require("gui")
 local drawgui = require("drawgui")
 local inputcommands = require("inputcommands")
 local input = require("input")
+local filesystem = require("commands.filesystem")
 
 local lg = love.graphics
+
+commands.register("quit", love.event.quit)
 
 function love.load()
     shortcuts.register("ctrl+s", "print", {str = "pressed ctrl+s"})
@@ -42,8 +46,12 @@ function love.load()
     shortcuts.register("ctrl+tab", "nexttab")
     shortcuts.register("ctrl+shift+tab", "prevtab")
 
-    shortcuts.register("tab", "togglefilesysteminput")
+    shortcuts.register("tab", "toggleviewitemsinput")
     shortcuts.register("ctrl+space", "togglecommandinput")
+
+    inputcommands.register("Bookmark: Home", "enumeratepath", {path = "C:/Users/Joel"})
+
+    inputcommands.register("Quit", "quit")
 
     inputcommands.updateShortcutAnnotations()
 

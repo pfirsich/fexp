@@ -1,0 +1,18 @@
+* Give all gui functions optional pane-indices
+* Add text prompt feature to input.toggle() (e.g. for rename)
+* Scrolling when choosing options in the input palette
+* Remove "escapeNonAscii" function and somehow handle it properly
+    My locale encoding (1252) on Windows makes löve error in lg.print
+    I either need to convert it to utf-8, or keep stripping like I am now
+* Tab view
+    - "Cursor" (navigate with arrow keys)
+    - Scrolling
+    - Include meta data
+    - Select items
+    - Open file
+* File operations
+    - filter / glob
+    - rename
+    - copy
+    - paste
+* Optimize rendering (only rerender if something changed)
