@@ -1,5 +1,6 @@
 local commands = require("commands")
 local inputcommands = require("inputcommands")
+local input = require("input")
 
 local gui = {}
 
@@ -256,5 +257,29 @@ end
 commands.register("prevtab", gui.prevTab)
 
 inputcommands.register("Previous Tab", "prevtab")
+
+function gui.renameTab(newName)
+    local pane = gui.selectedPane
+    local tab = pane.tabs[pane.selectedTabIndex]
+    if tab then
+        tab.title = newName
+    end
+end
+commands.register("renametab", commands.wrap(gui.renameTab, {"newName"}), {"newName"})
+
+function gui.renameTabPrompt()
+    local pane = gui.selectedPane
+    local tab = pane.tabs[pane.selectedTabIndex]
+    if tab then
+        input.toggle({{
+            caption = "Rename Tab",
+            command = "renametab",
+            arguments = {},
+        }}, tab.title, "newName")
+    end
+end
+commands.register("renametabprompt", gui.renameTabPrompt)
+
+inputcommands.register("Rename Tab", "renametabprompt")
 
 return gui

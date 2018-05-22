@@ -136,6 +136,14 @@ local function makeColoredText(matchParts)
 end
 
 local function updateInputEntryVisibility()
+    if input.promptArg then
+        input.entries[1].visible = true
+        input.entries[1].coloredText = makeColoredText({true, input.entries[1].caption})
+        input.selectedEntry = 1
+        input.numVisible = 1
+        return
+    end
+
     for _, entry in ipairs(input.entries) do
         entry.matchScore, entry.matchingIndices = matchScore(entry.caption, input.text)
         entry.visible = entry.matchScore and entry.matchScore >= 0
@@ -150,21 +158,30 @@ local function updateInputEntryVisibility()
     end--]]
 
     -- select first visible (best match)
+    input.selectedEntry = nil
+    input.numVisible = 0
     for i, entry in ipairs(input.entries) do
         if entry.visible then
-            input.selectedEntry = i
-            break
+            input.selectedEntry = input.selectedEntry or i
+            input.numVisible = input.numVisible + 1
         end
     end
 end
 
-function input.toggle(entries, text)
+-- if promptArg is given, the input is a prompt i.e.
+-- only the first entry is drawn and always visible,
+-- the command will receive an additional argument with the input and the name is 'promptArg'
+function input.toggle(entries, text, promptArg)
     if input.entries then
         input.entries = nil
     else
         input.entries = entries
         input.text = text or ""
         input.selectedEntry = 1
+        input.promptArg = promptArg
+        if input.promptArg then
+            input.entries = {entries[1]}
+        end
         updateInputEntryVisibility()
     end
 end
@@ -221,6 +238,9 @@ function input.keypressed(key)
     end
     if key == "return" then
         local entry = input.entries[input.selectedEntry]
+        if input.promptArg then
+            entry.arguments[input.promptArg] = input.text
+        end
         commands.exec(entry.command, entry.arguments)
         input.entries = nil
     end

@@ -105,7 +105,7 @@ function drawPane(pane, x, y, w, h)
         end
 
         if paneSelected and input.isActive() then
-            local numEntries = 10
+            local numEntries = math.min(10, input.numVisible)
             local inputW = 0.8 * w
             local inputY = y + 70
             local lineHeight = 30

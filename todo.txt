@@ -1,5 +1,5 @@
-* Give all gui functions optional pane-indices
-* Add text prompt feature to input.toggle() (e.g. for rename)
+* Give all gui functions optional pane-indices (remove the half-assed code right now and add this when it's needed)
+
 * Scrolling when choosing options in the input palette
 * Remove "escapeNonAscii" function and somehow handle it properly
     My locale encoding (1252) on Windows makes löve error in lg.print
