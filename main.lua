@@ -6,9 +6,9 @@ local drawgui = require("drawgui")
 local inputcommands = require("inputcommands")
 local input = require("input")
 
-local lg = love.graphics
-
 commands.register("quit", love.event.quit)
+
+love.graphics.setFont(love.graphics.newFont("RobotoMono-Regular.ttf", 14))
 
 function love.load()
     commands.loadCommands()
@@ -49,6 +49,8 @@ function love.load()
     shortcuts.register("down", "moveitemcursor", {delta = 1})
     shortcuts.register("pageup", "moveitemcursor", {delta = -8})
     shortcuts.register("pagedown", "moveitemcursor", {delta = 8})
+    shortcuts.register("home", "seekitemcursor", {pos = 1})
+    shortcuts.register("end", "seekitemcursor", {pos = -1})
 
     shortcuts.register("space", "toggleitemselection")
     shortcuts.register("a", "toggleitemselectall")

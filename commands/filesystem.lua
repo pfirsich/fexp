@@ -23,20 +23,6 @@ local function escapeNonAscii(str)
     return ret
 end
 
-local function sizeToString(bytes)
-    if bytes < 1024 then -- < 1KB
-        return ("%d B"):format(bytes)
-    elseif bytes < 1024*1024 then -- < 1MB
-        return ("%.3f KB"):format(bytes/1024)
-    elseif bytes < 1024*1024*1024 then -- < 1 GB
-        return ("%.3f MB"):format(bytes/1024/1024)
-    elseif bytes < 1024*1024*1024*1024 then -- < 1 TB
-        return ("%.3f GB"):format(bytes/1024/1024/1024)
-    else
-        return ("%.3f TB"):format(bytes/1024/1024/1024/1024)
-    end
-end
-
 function filesystem.openFile(path)
     love.system.openURL("file://" .. path)
 end
@@ -64,7 +50,7 @@ function filesystem.enumeratePath(path)
             if attr then
                 item.columns.type = attr.mode
                 item.columns.mod = attr.modification
-                item.columns.size = sizeToString(attr.size)
+                item.columns.size = attr.size
             end
 
             if item.columns.type == "file" then

@@ -7,10 +7,26 @@ local floor = math.floor
 
 local drawgui = {}
 
+local function sizeToString(bytes)
+    if bytes < 1024 then -- < 1KB
+        return ("%d B"):format(bytes)
+    elseif bytes < 1024*1024 then -- < 1MB
+        return ("%.3f KB"):format(bytes/1024)
+    elseif bytes < 1024*1024*1024 then -- < 1 GB
+        return ("%.3f MB"):format(bytes/1024/1024)
+    elseif bytes < 1024*1024*1024*1024 then -- < 1 TB
+        return ("%.3f GB"):format(bytes/1024/1024/1024)
+    else
+        return ("%.3f TB"):format(bytes/1024/1024/1024/1024)
+    end
+end
+
 function drawTabItems(tab, x, y, w, h)
     local font = lg.getFont()
     local fontHeight = font:getHeight()
     local lineHeight = fontHeight * 1.25
+    local modWidth = font:getWidth("00.00.0000 00:00:00")
+    local sizeWidth = font:getWidth("000.000 XB")
 
     tab._scrollOffset = tab._scrollOffset or 0
 
@@ -48,9 +64,21 @@ function drawTabItems(tab, x, y, w, h)
             lg.setColor(1.0, 0.8, 0.8)
         elseif item.columns.type == "file" then
             lg.setColor(0.8, 1.0, 0.8)
-            text = ("%s (%s)"):format(item.caption, item.columns.size)
         end
-        lg.print(text, floor(x + 5), floor(elemY + lineHeight/2 - fontHeight/2))
+
+        local tx, ty = floor(x + 5), floor(elemY + lineHeight/2 - fontHeight/2)
+        if tab.showModCol then
+            local modStr = os.date('%d.%m.%Y %H:%M:%S', item.columns.mod)
+            lg.print(modStr, tx, ty)
+            tx = tx + modWidth + 20
+        end
+        if tab.showSizeCol then
+            local sizeStr = sizeToString(item.columns.size)
+            local width = font:getWidth(sizeStr)
+            lg.print(sizeStr, tx + sizeWidth - width, ty)
+            tx = tx + sizeWidth + 20
+        end
+        lg.print(text, tx, ty)
         elemY = elemY + lineHeight
     end
     lg.setScissor()

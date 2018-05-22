@@ -206,6 +206,8 @@ function gui.newTab()
         path = "...",
         items = {},
         itemCursor = 0,
+        showModCol = true,
+        showSizeCol = true,
     }
     table.insert(pane.tabs, tab)
     pane.selectedTabIndex = #pane.tabs
@@ -276,6 +278,24 @@ end
 commands.register("renametabprompt", gui.renameTabPrompt)
 inputcommands.register("Rename Tab", "renametabprompt")
 
+function gui.toggleModCol()
+    local tab = gui.getSelectedTab()
+    if tab then
+        tab.showModCol = not tab.showModCol
+    end
+end
+commands.register("togglemodcol", gui.toggleModCol)
+inputcommands.register("Toggle Modification Time Column", "togglemodcol")
+
+function gui.toggleSizeCol()
+    local tab = gui.getSelectedTab()
+    if tab then
+        tab.showSizeCol = not tab.showSizeCol
+    end
+end
+commands.register("togglesizecol", gui.toggleSizeCol)
+inputcommands.register("Toggle Size Column", "togglesizecol")
+
 function gui.moveItemCursor(delta)
     local tab = gui.getSelectedTab()
     if tab then
@@ -288,6 +308,9 @@ commands.register("moveitemcursor", commands.wrap(gui.moveItemCursor, {"delta"})
 function gui.seekItemCursor(pos)
     local tab = gui.getSelectedTab()
     if tab then
+        if pos < 0 then
+            pos = #tab.items + pos + 1
+        end
         tab.itemCursor = pos
         tab.itemCursor = math.max(1, math.min(#tab.items, tab.itemCursor))
     end

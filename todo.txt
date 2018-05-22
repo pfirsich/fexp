@@ -4,9 +4,6 @@
 * Remove "escapeNonAscii" function and somehow handle it properly
     My locale encoding (1252) on Windows makes löve error in lg.print
     I either need to convert it to utf-8, or keep stripping like I am now
-* Tab view
-    - Show metadata in columns, including moddate, maybe make them togglable via command?
-        Show them all on the left side, so it "scales" properly with filename length
 * File operations
     - rename
     - copy
@@ -17,12 +14,11 @@
 * Commands
     - execute item in new tab
     - execute item in new pane
-    - sort by *
     - refresh (requires current directory too)
     - Goto Path
 * Bugs
-    - sort after enumeratepath (only happens on windows by default)
     - fix prompt/input that spawns a prompt being closed immediately
+        This happens for example when you open a "Filter Glob" prompt via the command palette
 * Path library
     - Especially simplify paths like directory/../other
         This might actually cause bugs for paths like nonexistentdir/../dir
