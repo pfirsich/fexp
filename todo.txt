@@ -4,6 +4,7 @@
 * Remove "escapeNonAscii" function and somehow handle it properly
     My locale encoding (1252) on Windows makes löve error in lg.print
     I either need to convert it to utf-8, or keep stripping like I am now
+* Pane resizing
 * File operations
     - rename
     - copy

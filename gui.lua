@@ -67,15 +67,14 @@ function gui.splitPane(dir, carryTab)
         gui.selectedPane.children = {copyPane, newPane}
         gui.selectedPane.splitType = "v"
     end
+    gui.selectedPane.splitRatio = 0.5
 
     -- the real old pane doesn't have tabs anymore, just children
     gui.selectedPane.tabs = nil
     gui.selectedPane = newPane
 end
-
 commands.register("splitpane", commands.wrap(gui.splitPane, {"dir", "carryTab"}),
     {"dir"}, {carryTab = false})
-
 inputcommands.register("Split Pane Up", "splitpane", {dir = "up"})
 inputcommands.register("Split Pane Down", "splitpane", {dir = "down"})
 inputcommands.register("Split Pane Left", "splitpane", {dir = "left"})

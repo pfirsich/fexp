@@ -198,14 +198,15 @@ function drawPane(pane, x, y, w, h)
         end
     else
         assert(pane.splitType == "h" or pane.splitType == "v")
+        local split = pane.splitRatio
         if pane.splitType == "h" then
             local left, right = unpack(pane.children)
-            drawPane(left, x, y, w/2, h)
-            drawPane(right, x+w/2, y, w/2, h)
+            drawPane(left, x, y, w*split, h)
+            drawPane(right, x + w*split, y, w*(1-split), h)
         else
             local up, down = unpack(pane.children)
-            drawPane(up, x, y, w, h/2)
-            drawPane(down, x, y+h/2, w, h/2)
+            drawPane(up, x, y, w, h*split)
+            drawPane(down, x, y + h*split, w, h*(1-split))
         end
     end
 end
