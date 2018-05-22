@@ -39,7 +39,7 @@ function love.load()
     shortcuts.register({"ctrl+m", "up"}, "mergepane", {dir = "up"})
     shortcuts.register({"ctrl+m", "down"}, "mergepane", {dir = "down"})
     shortcuts.register({"ctrl+m", "left"}, "mergepane", {dir = "left"})
-    shortcuts.register({"ctrl+m", "down"}, "mergepane", {dir = "down"})
+    shortcuts.register({"ctrl+m", "right"}, "mergepane", {dir = "right"})
 
     shortcuts.register("ctrl+t", "newtab")
     shortcuts.register("ctrl+w", "closetab")
@@ -50,11 +50,19 @@ function love.load()
     shortcuts.register("tab", "toggleviewitemsinput")
     shortcuts.register("ctrl+space", "togglecommandinput")
 
+    shortcuts.register("up", "moveitemcursor", {delta = -1})
+    shortcuts.register("down", "moveitemcursor", {delta = 1})
+    shortcuts.register("pageup", "moveitemcursor", {delta = -8})
+    shortcuts.register("pagedown", "moveitemcursor", {delta = 8})
+    shortcuts.register("space", "toggleitemselection")
+
     inputcommands.register("Bookmark: Home", "enumeratepath", {path = "C:/Users/Joel"})
 
     inputcommands.register("Quit", "quit")
 
     inputcommands.updateShortcutAnnotations()
+
+    love.keyboard.setKeyRepeat(true)
 
     gui.init()
 end

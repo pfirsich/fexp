@@ -22,6 +22,7 @@ function enumeratePath(path)
             arguments = {path = path .. "/" .. file},
         })
     end
+    tab.itemCursor = 1
 end
 commands.register("enumeratepath", commands.wrap(enumeratePath, {"path"}), {"path"})
 

@@ -206,6 +206,7 @@ function gui.newTab()
         title = tostring(love.math.random(10000, 100000)),
         path = "...",
         items = {},
+        itemCursor = 0,
     }
     table.insert(pane.tabs, tab)
     pane.selectedTabIndex = #pane.tabs
@@ -268,8 +269,7 @@ end
 commands.register("renametab", commands.wrap(gui.renameTab, {"newName"}), {"newName"})
 
 function gui.renameTabPrompt()
-    local pane = gui.selectedPane
-    local tab = pane.tabs[pane.selectedTabIndex]
+    local tab = gui.getSelectedTab()
     if tab then
         input.toggle({{
             caption = "Rename Tab",
@@ -281,5 +281,23 @@ end
 commands.register("renametabprompt", gui.renameTabPrompt)
 
 inputcommands.register("Rename Tab", "renametabprompt")
+
+function gui.moveItemCursor(delta)
+    local tab = gui.getSelectedTab()
+    if tab then
+        tab.itemCursor = tab.itemCursor + delta
+        tab.itemCursor = math.max(1, math.min(#tab.items, tab.itemCursor))
+    end
+end
+commands.register("moveitemcursor", commands.wrap(gui.moveItemCursor, {"delta"}), {"delta"})
+
+function gui.toggleItemSelection()
+    local tab = gui.getSelectedTab()
+    if tab then
+        local item = tab.items[tab.itemCursor]
+        item.selected = not item.selected
+    end
+end
+commands.register("toggleitemselection", gui.toggleItemSelection)
 
 return gui

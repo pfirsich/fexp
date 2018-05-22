@@ -22,14 +22,40 @@ local function escapeNonAscii(str)
     return ret
 end
 
-function drawTabItems(items, x, y, w, h)
+function drawTabItems(tab, x, y, w, h)
     local font = lg.getFont()
+    local fontHeight = font:getHeight()
+    local lineHeight = fontHeight * 1.25
+
+    tab._scrollOffset = tab._scrollOffset or 0
+
+    local elemY = y + tab._scrollOffset
+    if elemY > 0 then
+        tab._scrollOffset = 0
+        elemY = y + tab._scrollOffset
+    end
+
+    local cursorOffset = tab._scrollOffset + lineHeight * (tab.itemCursor - 1)
+    if cursorOffset < 0 then
+        tab._scrollOffset = tab._scrollOffset - cursorOffset
+    elseif cursorOffset > h - lineHeight then
+        tab._scrollOffset = tab._scrollOffset - (cursorOffset - (h - lineHeight))
+    end
+    elemY = y + tab._scrollOffset
+
     lg.setScissor(x, y, w, h)
-    local elemY = y
-    local lineHeight = font:getHeight()
     lg.setColor(1, 1, 1)
-    for i, item in ipairs(items) do
-        lg.print(escapeNonAscii(item.caption), floor(x + 5), floor(elemY))
+    for i, item in ipairs(tab.items) do
+        if item.selected then
+            lg.setColor(0.2, 0.2, 1.0)
+            lg.rectangle("fill", x, elemY, w, lineHeight)
+        end
+        if tab.itemCursor == i then
+            lg.setColor(1, 1, 1, 0.4)
+            lg.rectangle("fill", x, elemY, w, lineHeight)
+        end
+        lg.setColor(1, 1, 1)
+        lg.print(escapeNonAscii(item.caption), floor(x + 5), floor(elemY + lineHeight/2 - fontHeight/2))
         elemY = elemY + lineHeight
     end
     lg.setScissor()
@@ -93,7 +119,7 @@ function drawPane(pane, x, y, w, h)
                 textRegion(tab.path, x, pathLineY, w, pathLineH)
 
                 local itemsY = pathLineY + pathLineH
-                drawTabItems(tab.items, x, itemsY, w, h - (itemsY - y))
+                drawTabItems(tab, x, itemsY, w, h - (itemsY - y))
             end
         end
 
