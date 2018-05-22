@@ -49,8 +49,8 @@ end
 function commands.wrap(func, argList)
     return function(args)
         local funcArgs = {}
-        for _, arg in ipairs(argList) do
-            table.insert(funcArgs, args[arg])
+        for i, arg in ipairs(argList) do
+            funcArgs[i] = args[arg]
         end
         return func(unpack(funcArgs))
     end
