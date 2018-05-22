@@ -11,11 +11,7 @@ local lg = love.graphics
 commands.register("quit", love.event.quit)
 
 function love.load()
-    for _, file in ipairs(love.filesystem.getDirectoryItems("commands")) do
-        if file ~= "init.lua" then
-            require("commands." .. file:sub(1, file:len() - 4))
-        end
-    end
+    commands.loadCommands()
 
     shortcuts.register({"ctrl+k", "up"}, "splitpane", {dir = "up"})
     shortcuts.register({"ctrl+k", "down"}, "splitpane", {dir = "down"})
@@ -46,7 +42,7 @@ function love.load()
     shortcuts.register("ctrl+shift+tab", "prevtab")
     shortcuts.register("f2", "renametabprompt")
 
-    shortcuts.register("tab", "toggleviewitemsinput")
+    shortcuts.register("tab", "gotoitemprompt")
     shortcuts.register("ctrl+space", "togglecommandinput")
 
     shortcuts.register("up", "moveitemcursor", {delta = -1})
@@ -61,6 +57,11 @@ function love.load()
     shortcuts.register({"ctrl+f", "g"}, "filterglobprompt")
     shortcuts.register({"ctrl+f", "s"}, "filterselected")
     shortcuts.register({"ctrl+f", "q"}, "filterqueryprompt")
+
+    shortcuts.register({"ctrl+s", "n"}, "sort", {by = "name"})
+    shortcuts.register({"ctrl+s", "m"}, "sort", {by = "mod"})
+    shortcuts.register({"ctrl+s", "s"}, "sort", {by = "size"})
+    shortcuts.register({"ctrl+s", "t"}, "sort", {by = "type"})
 
     inputcommands.register("Bookmark: Home", "enumeratepath", {path = "C:/Users/Joel"})
 

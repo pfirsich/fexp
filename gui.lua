@@ -294,6 +294,22 @@ function gui.seekItemCursor(pos)
 end
 commands.register("seekitemcursor", commands.wrap(gui.seekItemCursor, {"pos"}), {"pos"})
 
+function gui.gotoItemPrompt(text)
+    local tab = gui.getSelectedTab()
+    if tab then
+        local entries = {}
+        for i, item in ipairs(tab.items) do
+            table.insert(entries, {
+                caption = item.caption,
+                command = "seekitemcursor",
+                arguments = {pos = i},
+            })
+        end
+        input.toggle(entries, text)
+    end
+end
+commands.register("gotoitemprompt", commands.wrap(gui.gotoItem, {"text"}))
+
 function gui.toggleItemSelection()
     local tab = gui.getSelectedTab()
     if tab then

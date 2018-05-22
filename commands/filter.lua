@@ -7,7 +7,7 @@ local input = require("input")
 
 local filter = {}
 
-function filterGlob(glob)
+function filter.glob(glob)
     local pat = globtopattern(glob)
     local tab = gui.getSelectedTab()
     if tab then
@@ -16,9 +16,9 @@ function filterGlob(glob)
         end, tab.items)
     end
 end
-commands.register("filterglob", commands.wrap(filterGlob, {"glob"}), {"glob"})
+commands.register("filterglob", commands.wrap(filter.glob, {"glob"}), {"glob"})
 
-function filterGlobPrompt()
+function filter.globPrompt()
     local tab = gui.getSelectedTab()
     if tab then
         input.toggle({{
@@ -28,10 +28,10 @@ function filterGlobPrompt()
         }}, "", "glob")
     end
 end
-commands.register("filterglobprompt", filterGlobPrompt)
+commands.register("filterglobprompt", filter.globPrompt)
 inputcommands.register("Filter Glob", "filterglobprompt")
 
-function filterSelected()
+function filter.selected()
     local tab = gui.getSelectedTab()
     if tab then
         print(inspect(tab.items))
@@ -41,15 +41,15 @@ function filterSelected()
         print(inspect(tab.items))
     end
 end
-commands.register("filterselected", filterSelected)
+commands.register("filterselected", filter.selected)
 inputcommands.register("Filter Selected", "filterselected")
 
-function filterQuery(query)
+function filter.query(query)
 
 end
-commands.register("filterquery", commands.wrap(filterQuery, {"query"}), {"query"})
+commands.register("filterquery", commands.wrap(filter.query, {"query"}), {"query"})
 
-function filterQueryPrompt()
+function filter.queryPrompt()
     local tab = gui.getSelectedTab()
     if tab then
         input.toggle({{
@@ -59,7 +59,7 @@ function filterQueryPrompt()
         }}, "", "query")
     end
 end
-commands.register("filterqueryprompt", filterQueryPrompt)
+commands.register("filterqueryprompt", filter.queryPrompt)
 inputcommands.register("Filter Query", "filterqueryprompt")
 
 return filter

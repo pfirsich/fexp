@@ -1,5 +1,7 @@
 local utf8 = require("utf8")
+
 local commands = require("commands")
+local sort = require("sort")
 
 local input = {}
 
@@ -108,18 +110,6 @@ local function entryCmp(a, b)
     return a.matchScore >= b.matchScore
 end
 
-local function stableSort(list, cmp)
-    for i = 2, #list do
-        local v = list[i]
-        local j = i
-        while j > 1 and cmp(v, list[j-1]) do
-            list[j] = list[j-1]
-            j = j - 1
-        end
-        list[j] = v
-    end
-end
-
 local function makeColoredText(matchParts)
     local ret = {}
     local matching = matchParts[1]
@@ -151,7 +141,7 @@ local function updateInputEntryVisibility()
             entry.coloredText = makeColoredText(entry.matchingIndices)
         end
     end
-    stableSort(input.entries, entryCmp)
+    sort(input.entries, entryCmp)
 --[[    print(">>> sorted")
     for _, entry in ipairs(input.entries) do
         print(entry.caption, entry.matchScore, inspect(entry.matchingIndices))

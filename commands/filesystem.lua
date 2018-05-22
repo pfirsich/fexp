@@ -4,6 +4,7 @@ local commands = require("commands")
 local inputcommands = require("inputcommands")
 local input = require("input")
 local gui = require("gui")
+local sort = require("sort")
 
 local filesystem = {}
 
@@ -36,12 +37,12 @@ local function sizeToString(bytes)
     end
 end
 
-function openFile(path)
+function filesystem.openFile(path)
     love.system.openURL("file://" .. path)
 end
-commands.register("openfile", commands.wrap(openFile, {"path"}), {"path"})
+commands.register("openfile", commands.wrap(filesystem.openFile, {"path"}), {"path"})
 
-function enumeratePath(path)
+function filesystem.enumeratePath(path)
     local tab = gui.getSelectedTab()
     if not tab then
         gui.newTab()
@@ -78,23 +79,11 @@ function enumeratePath(path)
         end
     end
     tab.itemCursor = 1
-end
-commands.register("enumeratepath", commands.wrap(enumeratePath, {"path"}), {"path"})
 
-function toggleViewItemsInput(text)
-    local tab = gui.getSelectedTab()
-    if tab then
-        local entries = {}
-        for i, item in ipairs(tab.items) do
-            table.insert(entries, {
-                caption = item.caption,
-                command = "seekitemcursor",
-                arguments = {pos = i},
-            })
-        end
-        input.toggle(entries, text)
-    end
+    -- because the sort is stable items with the same type will still be sorted by name
+    commands.sort.sort("name")
+    commands.sort.sort("type")
 end
-commands.register("toggleviewitemsinput", commands.wrap(toggleViewItemsInput, {"text"}))
+commands.register("enumeratepath", commands.wrap(filesystem.enumeratePath, {"path"}), {"path"})
 
 return filesystem

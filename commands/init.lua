@@ -2,6 +2,17 @@ local commands = {}
 
 commands.registry = {}
 
+function commands.loadCommands()
+    for _, file in ipairs(love.filesystem.getDirectoryItems("commands")) do
+        if file:sub(-4) == ".lua" and file ~= "init.lua" then
+            local name = file:sub(1, -5)
+            local mod = require("commands." .. name)
+            assert(commands[name] == nil or commands[name] == mod)
+            commands[name] = mod
+        end
+    end
+end
+
 function commands.register(command, func, mandatoryArguments, defaultArguments)
     commands.registry[command] = {
         func = func,
