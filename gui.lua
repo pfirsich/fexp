@@ -34,6 +34,47 @@ local function checkDir(dir)
     return true
 end
 
+local function findPane(pane, root, path)
+    root = root or gui.rootPane
+    path = path or "/"
+
+    if pane == root then
+        return path
+    elseif root.tabs == nil then
+        if root.splitType == "h" then
+            local l = findPane(pane, root.children[1], path .. "l")
+            if l then return l end
+            local r = findPane(pane, root.children[2], path .. "r")
+            if r then return r end
+        else
+            local u = findPane(pane, root.children[1], path .. "u")
+            if u then return u end
+            local d = findPane(pane, root.children[2], path .. "d")
+            if d then return d end
+        end
+    end
+
+    return nil
+end
+
+local function strmul(s, n)
+    local ret = ""
+    for i = 1, n do
+        ret = ret .. s
+    end
+    return ret
+end
+
+local function printPaneGraph(pane, depth)
+    pane = pane or gui.rootPane
+    depth = depth or 0
+    print(strmul("    ", depth) .. findPane(pane), pane, pane.splitType)
+    if pane.children then
+        printPaneGraph(pane.children[1], depth + 1)
+        printPaneGraph(pane.children[2], depth + 1)
+    end
+end
+
 function gui.splitPane(dir, carryTab)
     if not checkDir(dir) then
         return
