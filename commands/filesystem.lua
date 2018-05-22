@@ -72,4 +72,14 @@ function filesystem.enumeratePath(path)
 end
 commands.register("enumeratepath", commands.wrap(filesystem.enumeratePath, {"path"}), {"path"})
 
+function filesystem.enumeratePathPrompt(text)
+    input.toggle({{
+        caption = "Enumerate/Goto Path",
+        command = "enumeratepath",
+        arguments = {},
+    }}, "", "path")
+end
+commands.register("enumeratepathprompt", commands.wrap(filesystem.enumeratePathPrompt, {"text"}))
+inputcommands.register("Enumerate/Goto Path", "enumeratepathprompt")
+
 return filesystem
