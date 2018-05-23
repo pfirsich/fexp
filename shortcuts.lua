@@ -51,7 +51,20 @@ end
 
 local inputHistory = {}
 
-function shortcuts.keypressed(key)
+local canRepeat = {
+    up = true,
+    down = true,
+    left = true,
+    right = true,
+    pageup = true,
+    pagedown = true,
+}
+
+function shortcuts.keypressed(key, scancode, isRepeat)
+    if isRepeat and not canRepeat[key] then
+        return
+    end
+
     local mods = { -- modifiers
         alt = down("lalt") or down("ralt"),
         ctrl = down("lctrl") or down("rctrl"),

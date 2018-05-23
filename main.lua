@@ -93,11 +93,11 @@ function love.draw()
     drawgui.draw()
 end
 
-function love.keypressed(key)
+function love.keypressed(key, scancode, isRepeat)
     if input.isActive() then
-        input.keypressed(key)
+        input.keypressed(key, scancode, isRepeat)
     else
-        shortcuts.keypressed(key)
+        shortcuts.keypressed(key, scancode, isRepeat)
     end
 end
 
