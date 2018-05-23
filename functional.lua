@@ -20,7 +20,7 @@ end
 
 function functional.filterl(func, lst)
     local ret = {}
-    for _, v in pairs(lst) do
+    for _, v in ipairs(lst) do
         if func(v) then
             table.insert(ret, v)
         end
