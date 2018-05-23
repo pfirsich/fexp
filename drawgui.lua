@@ -48,39 +48,41 @@ function drawTabItems(tab, x, y, w, h)
     lg.setScissor(x, y, w, h)
     lg.setColor(1, 1, 1)
     for i, item in ipairs(tab.items) do
-        if item.selected then
-            lg.setColor(0.2, 0.2, 1.0)
-            lg.rectangle("fill", x, elemY, w, lineHeight)
-        end
-        if tab.itemCursor == i then
-            lg.setColor(1, 1, 1, 0.4)
-            lg.rectangle("fill", x, elemY, w, lineHeight)
-        end
-        lg.setColor(0.1, 0.1, 0.1)
-        lg.rectangle("line", x, elemY, w, lineHeight)
-
-        lg.setColor(1, 1, 1)
-        lg.setFont(fonts.regular)
         local tx, ty = floor(x + 5), floor(elemY + lineHeight/2 - fontHeight/2)
-        if tab.showModCol then
-            local modStr = os.date('%d.%m.%Y %H:%M:%S', item.columns.mod)
-            lg.print(modStr, tx, ty)
-            tx = tx + modWidth + 20
-        end
-        if tab.showSizeCol then
-            local sizeStr = sizeToString(item.columns.size)
-            local width = font:getWidth(sizeStr)
-            lg.print(sizeStr, tx + sizeWidth - width, ty)
-            tx = tx + sizeWidth + 20
-        end
+        if ty > y - lineHeight and ty < y + h then
+            if item.selected then
+                lg.setColor(0.2, 0.2, 1.0)
+                lg.rectangle("fill", x, elemY, w, lineHeight)
+            end
+            if tab.itemCursor == i then
+                lg.setColor(1, 1, 1, 0.4)
+                lg.rectangle("fill", x, elemY, w, lineHeight)
+            end
+            lg.setColor(0.1, 0.1, 0.1)
+            lg.rectangle("line", x, elemY, w, lineHeight)
 
-        if item.columns.type == "directory" then
-            lg.setColor(0.8, 0.8, 1.0)
-            lg.setFont(fonts.bold)
-        elseif item.columns.type ~= "file" then
-            lg.setFont(fonts.italic)
+            lg.setColor(1, 1, 1)
+            lg.setFont(fonts.regular)
+            if tab.showModCol then
+                local modStr = os.date('%d.%m.%Y %H:%M:%S', item.columns.mod)
+                lg.print(modStr, tx, ty)
+                tx = tx + modWidth + 20
+            end
+            if tab.showSizeCol then
+                local sizeStr = sizeToString(item.columns.size)
+                local width = font:getWidth(sizeStr)
+                lg.print(sizeStr, tx + sizeWidth - width, ty)
+                tx = tx + sizeWidth + 20
+            end
+
+            if item.columns.type == "directory" then
+                lg.setColor(0.8, 0.8, 1.0)
+                lg.setFont(fonts.bold)
+            elseif item.columns.type ~= "file" then
+                lg.setFont(fonts.italic)
+            end
+            lg.print(item.caption, tx, ty)
         end
-        lg.print(item.caption, tx, ty)
         elemY = elemY + lineHeight
     end
     lg.setScissor()
@@ -156,7 +158,7 @@ function drawPane(pane, x, y, w, h)
             lg.setColor(1, 1, 1)
             local text = "No open tabs."
             local tx, ty = x + w/2 - font:getWidth(text)/2, y + h/2 - font:getHeight()/2
-            lg.print("No open tabs.", math.floor(tx), math.floor(ty))
+            lg.print("No open tabs.", floor(tx), floor(ty))
         end
 
         if paneSelected and input.isActive() then
