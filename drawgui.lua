@@ -7,6 +7,12 @@ local message = require("message")
 local lg = love.graphics
 local floor = math.floor
 
+local fonts = {
+    regular = love.graphics.newFont("RobotoMono-Regular.ttf", 14),
+    bold = love.graphics.newFont("RobotoMono-Bold.ttf", 14),
+    italic = love.graphics.newFont("RobotoMono-Italic.ttf", 14),
+}
+
 local drawgui = {}
 
 local function sizeToString(bytes)
@@ -54,13 +60,7 @@ function drawTabItems(tab, x, y, w, h)
         lg.rectangle("line", x, elemY, w, lineHeight)
 
         lg.setColor(1, 1, 1)
-        local text = item.caption
-        if item.columns.type == "directory" then
-            lg.setColor(1.0, 0.8, 0.8)
-        elseif item.columns.type == "file" then
-            lg.setColor(0.8, 1.0, 0.8)
-        end
-
+        lg.setFont(fonts.regular)
         local tx, ty = floor(x + 5), floor(elemY + lineHeight/2 - fontHeight/2)
         if tab.showModCol then
             local modStr = os.date('%d.%m.%Y %H:%M:%S', item.columns.mod)
@@ -73,7 +73,14 @@ function drawTabItems(tab, x, y, w, h)
             lg.print(sizeStr, tx + sizeWidth - width, ty)
             tx = tx + sizeWidth + 20
         end
-        lg.print(text, tx, ty)
+
+        if item.columns.type == "directory" then
+            lg.setColor(0.8, 0.8, 1.0)
+            lg.setFont(fonts.bold)
+        elseif item.columns.type ~= "file" then
+            lg.setFont(fonts.italic)
+        end
+        lg.print(item.caption, tx, ty)
         elemY = elemY + lineHeight
     end
     lg.setScissor()
@@ -126,6 +133,7 @@ function drawPane(pane, x, y, w, h)
             if title:len() == 0 then
                 title = tab.path and paths.basename(tab.path) or "unnamed tab"
             end
+            lg.setFont(fonts.regular)
             textRegion(title, tabX, y, tabWidth, tabHeight)
 
             if tabSelected then
@@ -143,6 +151,7 @@ function drawPane(pane, x, y, w, h)
             end
         end
 
+        lg.setFont(fonts.regular)
         if numTabs == 0 then
             lg.setColor(1, 1, 1)
             local text = "No open tabs."

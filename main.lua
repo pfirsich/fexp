@@ -8,8 +8,6 @@ local input = require("input")
 
 commands.register("quit", love.event.quit)
 
-love.graphics.setFont(love.graphics.newFont("RobotoMono-Regular.ttf", 14))
-
 function love.load()
     commands.loadCommands()
 
