@@ -432,7 +432,7 @@ function gui.toggleItemSelectAll()
 end
 commands.register("toggleitemselectall", gui.toggleItemSelectAll)
 
-function gui.getItemSelection()
+function gui.getSelectedItems()
     local tab = gui.getSelectedTab()
     if tab then
         local ret = {}
@@ -441,6 +441,15 @@ function gui.getItemSelection()
                 table.insert(ret, item)
             end
         end
+        return ret
+    end
+    return nil
+end
+
+function gui.getItemSelection()
+    local tab = gui.getSelectedTab()
+    if tab then
+        local ret = gui.getSelectedItems()
 
         if #ret == 0 then
             tab.items[tab.itemCursor].selected = true

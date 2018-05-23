@@ -243,6 +243,18 @@ function drawgui.draw()
     local fontH = font:getHeight()
     local ty = floor(statusY + statusH/2 - fontH/2)
 
+    lg.setColor(1.0, 1.0, 1.0)
+
+    local tab = gui.getSelectedTab()
+    if tab then
+        local rightText = ("%d items"):format(#tab.items)
+        local selection = gui.getSelectedItems()
+        if selection and #selection > 0 then
+            rightText = rightText .. (", %d selected"):format(#selection)
+        end
+        lg.print(rightText, w - font:getWidth(rightText) - 5, ty)
+    end
+
     if message.messageError then
         lg.setColor(1.0, 0.2, 0.2)
     end
