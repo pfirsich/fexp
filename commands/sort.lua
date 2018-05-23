@@ -46,5 +46,9 @@ function sort.sort(by)
     end
 end
 commands.register("sort", commands.wrap(sort.sort, {"by"}), {"by"})
+inputcommands.register("Sort by Type", "sort", {by = "type"})
+inputcommands.register("Sort by Name", "sort", {by = "name"})
+inputcommands.register("Sort by Size", "sort", {by = "size"})
+inputcommands.register("Sort by Modification Time", "sort", {by = "mod"})
 
 return sort
