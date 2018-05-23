@@ -111,6 +111,10 @@ local function entryCmp(a, b)
     return a.matchScore > b.matchScore
 end
 
+local function entryCmpCaption(a, b)
+    return a.caption < b.caption
+end
+
 local function makeColoredText(matchParts)
     local ret = {}
     local matching = matchParts[1]
@@ -132,14 +136,22 @@ local function updateInputEntryVisibility()
         input.entries[1].coloredText = makeColoredText({true, input.entries[1].caption})
         input.selectedEntry = 1
     else
-        for _, entry in ipairs(input.entries) do
-            entry.matchScore, entry.matchingIndices = matchScore(entry.caption, input.text)
-            entry.visible = entry.matchScore and entry.matchScore >= 0
-            if entry.matchScore then
-                entry.coloredText = makeColoredText(entry.matchingIndices)
+        if input.text:len() > 0 then
+            for _, entry in ipairs(input.entries) do
+                entry.matchScore, entry.matchingIndices = matchScore(entry.caption, input.text)
+                entry.visible = entry.matchScore and entry.matchScore >= 0
+                if entry.matchScore then
+                    entry.coloredText = makeColoredText(entry.matchingIndices)
+                end
             end
+            sort(input.entries, entryCmp)
+        else
+            for _, entry in ipairs(input.entries) do
+                entry.visible = true
+                entry.coloredText = makeColoredText({false, entry.caption})
+            end
+            sort(input.entries, entryCmpCaption)
         end
-        sort(input.entries, entryCmp)
     end
 
     -- construct visible set
