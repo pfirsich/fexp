@@ -75,7 +75,7 @@ local function getDirItems(path, recursive)
             table.insert(items, item)
 
             if recursive then
-                local subItems = getDirItems(filePath)
+                local subItems = getDirItems(filePath, recursive)
                 for _, item in ipairs(subItems) do
                     item.caption = escapeNonAscii(paths.join(file, item.caption))
                 end
