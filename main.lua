@@ -78,6 +78,7 @@ function love.load()
     shortcuts.register({"ctrl+s", "t"}, "sort", {by = "type"})
 
     inputcommands.register("Bookmark: Home", "enumeratepath", {path = "C:/Users/Joel"})
+    inputcommands.register("Recursive Enum Test", "enumeratepath", {path = "C:/Users/Joel/.android", recursive = true})
 
     inputcommands.register("Quit", "quit")
 

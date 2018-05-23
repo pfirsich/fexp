@@ -8,6 +8,7 @@ local sort = require("sort")
 local paths = require("paths")
 local promptFunction = require("promptFunction")
 local message = require("message")
+local functional = require("functional")
 
 local filesystem = {}
 
@@ -31,7 +32,61 @@ function filesystem.openFile(path)
 end
 commands.register("openfile", commands.wrap(filesystem.openFile, {"path"}), {"path"})
 
-function filesystem.enumeratePath(path)
+local function tableExtend(tbl, with)
+    for _, elem in ipairs(with) do
+        table.insert(tbl, elem)
+    end
+end
+
+local function getDirItem(path, file, caption)
+    local filePath = paths.join(path, file)
+    local attr = lfs.attributes(filePath)
+
+    local item = {
+        caption = caption or escapeNonAscii(file),
+        columns = {type = "n/a", mod = 0, size = 0},
+        arguments = {name = file, path = filePath},
+    }
+
+    if attr then
+        item.columns.type = attr.mode
+        item.columns.mod = attr.modification
+        item.columns.size = attr.size
+    end
+
+    if item.columns.type == "file" then
+        item.command = "openfile"
+    elseif item.columns.type == "directory" then
+        item.command = "enumeratepath"
+    else
+        item.command = "nop"
+    end
+
+    return item
+end
+
+local function getDirItems(path, recursive)
+    path = paths.normpath(path)
+    local items = {}
+    for file in lfs.dir(path) do
+        if file ~= "." and file ~= ".." then
+            local filePath = paths.join(path, file)
+            local item = getDirItem(path, file)
+            table.insert(items, item)
+
+            if recursive then
+                local subItems = getDirItems(filePath)
+                for _, item in ipairs(subItems) do
+                    item.caption = paths.join(file, item.caption)
+                end
+                tableExtend(items, subItems)
+            end
+        end
+    end
+    return items
+end
+
+function filesystem.enumeratePath(path, recursive)
     path = paths.normpath(path)
     local tab = gui.getSelectedTab()
     if not tab then
@@ -39,43 +94,20 @@ function filesystem.enumeratePath(path)
         tab = gui.getSelectedTab()
     end
     tab.path = path
-    tab.items = {}
-    for file in lfs.dir(path) do
-        if file ~= "." then
-            local filePath = paths.join(path, file)
-            local attr = lfs.attributes(filePath)
-
-            local item = {
-                caption = escapeNonAscii(file),
-                columns = {type = "n/a", mod = 0, size = 0},
-                arguments = {name = file, path = filePath},
-            }
-
-            if attr then
-                item.columns.type = attr.mode
-                item.columns.mod = attr.modification
-                item.columns.size = attr.size
-            end
-
-            if item.columns.type == "file" then
-                item.command = "openfile"
-            elseif item.columns.type == "directory" then
-                item.command = "enumeratepath"
-            else
-                item.command = "nop"
-            end
-
-            table.insert(tab.items, item)
-        end
-    end
+    tab.items = getDirItems(path, recursive)
+    local dotdotCaption = (".. (%s)"):format(paths.normpath(paths.join(path, "..")))
+    table.insert(tab.items, 1, getDirItem(path, "..", dotdotCaption))
     tab.itemCursor = 1
 
     -- because the sort is stable items with the same type will still be sorted by name
     commands.sort.sort("name")
-    commands.sort.sort("type")
+    if not recursive then
+        commands.sort.sort("type")
+    end
 end
-commands.register("enumeratepath", commands.wrap(filesystem.enumeratePath, {"path"}), {"path"})
+commands.register("enumeratepath", commands.wrap(filesystem.enumeratePath, {"path", "recursive"}), {"path"})
 filesystem.enumeratePathPrompt = promptFunction("Enumerate/Goto Path", "enumeratepath", "path")
+filesystem.enumeratePathPrompt = promptFunction("Enumerate/Goto Path Recursively", "enumeratepath", "path", nil, {recursive = true})
 
 function filesystem.reloadTab()
     local tab = gui.getSelectedTab()
