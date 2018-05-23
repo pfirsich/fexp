@@ -1,4 +1,5 @@
 inspect = require("libs.inspect")
+require("run")
 local shortcuts = require("shortcuts")
 local commands = require("commands")
 local gui = require("gui")
@@ -100,6 +101,7 @@ function love.keypressed(key, scancode, isRepeat)
     else
         shortcuts.keypressed(key, scancode, isRepeat)
     end
+    triggerRepaint()
 end
 
 function love.textinput(text)
@@ -108,4 +110,5 @@ function love.textinput(text)
     if not ctrl and not alt and input.isActive() then
         input.textinput(text)
     end
+    triggerRepaint()
 end
