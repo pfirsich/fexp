@@ -1,16 +1,16 @@
 local gui = require("gui")
 local input = require("input")
-local functional = require("functional")
-local paths = require("paths")
+local functional = require("util.functional")
+local paths = require("util.paths")
 local message = require("message")
 
 local lg = love.graphics
 local floor = math.floor
 
 local fonts = {
-    regular = love.graphics.newFont("RobotoMono-Regular.ttf", 14),
-    bold = love.graphics.newFont("RobotoMono-Bold.ttf", 14),
-    italic = love.graphics.newFont("RobotoMono-Italic.ttf", 14),
+    regular = love.graphics.newFont("fonts/RobotoMono-Regular.ttf", 14),
+    bold = love.graphics.newFont("fonts/RobotoMono-Bold.ttf", 14),
+    italic = love.graphics.newFont("fonts/RobotoMono-Italic.ttf", 14),
 }
 
 local drawgui = {}

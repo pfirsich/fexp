@@ -1,10 +1,10 @@
 local gui = require("gui")
 local commands = require("commands")
 local inputcommands = require("inputcommands")
-local functional = require("functional")
+local functional = require("util.functional")
 local globtopattern = require("libs.globtopattern").globtopattern
 local input = require("input")
-local promptFunction = require("promptFunction")
+local promptFunction = require("util.promptFunction")
 local memoize = require("util.memoize")
 
 local filter = {}

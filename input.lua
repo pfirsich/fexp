@@ -1,8 +1,8 @@
 local utf8 = require("utf8")
 
 local commands = require("commands")
-local sort = require("sort")
-local functional = require("functional")
+local sort = require("util.sort")
+local functional = require("util.functional")
 
 local input = {}
 

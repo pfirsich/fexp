@@ -1,6 +1,6 @@
 local commands = require("commands")
 local inputcommands = require("inputcommands")
-local insertionSort = require("sort")
+local insertionSort = require("util.sort")
 local gui = require("gui")
 local message = require("message")
 

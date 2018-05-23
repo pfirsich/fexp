@@ -1,7 +1,7 @@
 local shortcuts = require("shortcuts")
 local commands = require("commands")
 local input = require("input")
-local sort = require("sort")
+local sort = require("util.sort")
 
 local inputcommands = {}
 

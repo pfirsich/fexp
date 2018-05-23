@@ -1,5 +1,5 @@
 local commands = require("commands")
-local functional = require("functional")
+local functional = require("util.functional")
 
 local shortcuts = {}
 

@@ -4,11 +4,11 @@ local commands = require("commands")
 local inputcommands = require("inputcommands")
 local input = require("input")
 local gui = require("gui")
-local sort = require("sort")
-local paths = require("paths")
-local promptFunction = require("promptFunction")
+local sort = require("util.sort")
+local paths = require("util.paths")
+local promptFunction = require("util.promptFunction")
 local message = require("message")
-local functional = require("functional")
+local functional = require("util.functional")
 
 local filesystem = {}
 
