@@ -40,7 +40,7 @@ function love.load()
     shortcuts.register("ctrl+w", "closetab")
     shortcuts.register("ctrl+tab", "nexttab")
     shortcuts.register("ctrl+shift+tab", "prevtab")
-    shortcuts.register("f2", "renametabprompt")
+    shortcuts.register("ctrl+f2", "renametabprompt")
 
     shortcuts.register("tab", "gotoitemprompt")
     shortcuts.register("ctrl+space", "togglecommandinput")

@@ -223,7 +223,14 @@ function input.keypressed(key)
         selectNextEntry()
     end
     if key == "return" then
+        if input.numVisible == 0 then
+            -- just close the input
+            input.entries = nil
+            return
+        end
+
         local entry = input.entries[input.selectedEntry]
+        assert(entry)
         if input.promptArg then
             entry.arguments[input.promptArg] = input.text
         end
