@@ -103,9 +103,9 @@ function paths.relpath(path, start)
 end
 
 function paths.splitext(path)
-    local base = basename(path)
+    local base = paths.basename(path)
     local lastDot = rfind(base, "%.")
-    if lastDot == 1 then
+    if not lastDot or lastDot == 1 then
         return path, ""
     else
         local ext = base:sub(lastDot)
