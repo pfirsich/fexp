@@ -29,20 +29,13 @@ function drawTabItems(tab, x, y, w, h)
     local sizeWidth = font:getWidth("000.000 XB")
 
     tab._scrollOffset = tab._scrollOffset or 0
-
-    local elemY = y + tab._scrollOffset
-    if elemY > 0 then
-        tab._scrollOffset = 0
-        elemY = y + tab._scrollOffset
-    end
-
     local cursorOffset = tab._scrollOffset + lineHeight * (tab.itemCursor - 1)
     if cursorOffset < 0 then
-        tab._scrollOffset = tab._scrollOffset - cursorOffset
+        tab._scrollOffset = math.min(0, tab._scrollOffset - cursorOffset)
     elseif cursorOffset > h - lineHeight then
         tab._scrollOffset = tab._scrollOffset - (cursorOffset - (h - lineHeight))
     end
-    elemY = y + tab._scrollOffset
+    local elemY = y + tab._scrollOffset
 
     lg.setScissor(x, y, w, h)
     lg.setColor(1, 1, 1)
