@@ -2,6 +2,7 @@ local utf8 = require("utf8")
 
 local commands = require("commands")
 local sort = require("sort")
+local functional = require("functional")
 
 local input = {}
 
@@ -130,28 +131,21 @@ local function updateInputEntryVisibility()
         input.entries[1].visible = true
         input.entries[1].coloredText = makeColoredText({true, input.entries[1].caption})
         input.selectedEntry = 1
-        input.numVisible = 1
-        return
-    end
-
-    for _, entry in ipairs(input.entries) do
-        entry.matchScore, entry.matchingIndices = matchScore(entry.caption, input.text)
-        entry.visible = entry.matchScore and entry.matchScore >= 0
-        if entry.matchScore then
-            entry.coloredText = makeColoredText(entry.matchingIndices)
+    else
+        for _, entry in ipairs(input.entries) do
+            entry.matchScore, entry.matchingIndices = matchScore(entry.caption, input.text)
+            entry.visible = entry.matchScore and entry.matchScore >= 0
+            if entry.matchScore then
+                entry.coloredText = makeColoredText(entry.matchingIndices)
+            end
         end
+        sort(input.entries, entryCmp)
     end
-    sort(input.entries, entryCmp)
 
+    -- construct visible set
+    input.visibleEntries = functional.filterl(function(entry) return entry.visible end, input.entries)
     -- select first visible (best match)
-    input.selectedEntry = nil
-    input.numVisible = 0
-    for i, entry in ipairs(input.entries) do
-        if entry.visible then
-            input.selectedEntry = input.selectedEntry or i
-            input.numVisible = input.numVisible + 1
-        end
-    end
+    input.selectedEntry = #input.visibleEntries > 0 and 1 or nil
 end
 
 -- if promptArg is given, the input is a prompt i.e.
@@ -172,64 +166,30 @@ function input.toggle(entries, text, promptArg)
     input.toggled = true
 end
 
-local function selectPrevEntry()
-    local firstVisible
-    for i, entry in ipairs(input.entries) do
-        if entry.visible then
-            firstVisible = i
-            break
-        end
+local function seekEntry(delta)
+    local numVis = #input.visibleEntries
+    if numVis == 0 then
+        input.selectedEntry = nil
+    else
+        input.selectedEntry = math.max(1, math.min(numVis, input.selectedEntry + delta))
     end
-
-    if not firstVisible then
-        -- no visible entry => don't do anything
-        return
-    end
-
-    input.selectedEntry = input.selectedEntry - 1
-    while input.selectedEntry > 1 and not input.entries[input.selectedEntry].visible do
-        input.selectedEntry = input.selectedEntry - 1
-    end
-
-    input.selectedEntry = math.max(firstVisible, input.selectedEntry)
-end
-
-local function selectNextEntry()
-    local lastVisible
-    for i, entry in ipairs(input.entries) do
-        if entry.visible then
-            lastVisible = i
-        end
-    end
-
-    if not lastVisible then
-        -- no visible entry => don't do anything
-        return
-    end
-
-    input.selectedEntry = input.selectedEntry + 1
-    while input.selectedEntry < #input.entries and not input.entries[input.selectedEntry].visible do
-        input.selectedEntry = input.selectedEntry + 1
-    end
-
-    input.selectedEntry = math.min(lastVisible, input.selectedEntry)
 end
 
 function input.keypressed(key)
     if key == "up" then
-        selectPrevEntry()
+        seekEntry(-1)
     end
     if key == "down" then
-        selectNextEntry()
+        seekEntry(1)
     end
     if key == "return" then
-        if input.numVisible == 0 then
+        if #input.visibleEntries == 0 then
             -- just close the input
             input.entries = nil
             return
         end
 
-        local entry = input.entries[input.selectedEntry]
+        local entry = input.visibleEntries[input.selectedEntry]
         assert(entry)
         if input.promptArg then
             entry.arguments[input.promptArg] = input.text
