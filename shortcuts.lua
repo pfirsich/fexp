@@ -79,7 +79,7 @@ function shortcuts.keypressed(key, scancode, isRepeat)
         table.remove(inputHistory, 1)
     end
 
-    local matchingShortcut = nil
+    local matchingShortcuts = {}
     for _, shortcut in ipairs(shortcuts.map) do
         local sequenceLen = #shortcut.shortcut
         if #inputHistory >= sequenceLen then
@@ -92,16 +92,20 @@ function shortcuts.keypressed(key, scancode, isRepeat)
                 end
             end
             if match then
-                -- match longest match
-                if not matchingShortcut or #matchingShortcut.shortcut < sequenceLen then
-                    matchingShortcut = shortcut
-                end
+                table.insert(matchingShortcuts, shortcut)
             end
         end
     end
 
-    if matchingShortcut then
-        commands.exec(matchingShortcut.command, matchingShortcut.arguments)
+    local longestMatch = 0
+    for _, shortcut in ipairs(matchingShortcuts) do
+        longestMatch = math.max(longestMatch, #shortcut.shortcut)
+    end
+
+    for _, shortcut in ipairs(matchingShortcuts) do
+        if #shortcut.shortcut == longestMatch then
+            commands.exec(shortcut.command, shortcut.arguments)
+        end
     end
 end
 
