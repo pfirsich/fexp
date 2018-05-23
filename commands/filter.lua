@@ -5,8 +5,13 @@ local functional = require("functional")
 local globtopattern = require("libs.globtopattern").globtopattern
 local input = require("input")
 local promptFunction = require("promptFunction")
+local memoize = require("util.memoize")
 
 local filter = {}
+
+-- we need this, because otherwise the "glob" function in queries would call the real
+-- "globtopattern" way too often
+globtopattern = memoize(globtopattern)
 
 function filter.glob(glob)
     local pat = globtopattern(glob)
@@ -50,6 +55,12 @@ local function parseTime(str)
     error("Not yet implemented!")
 end
 
+local function globber(str)
+    return function(glob)
+        return str:match(globtopattern(glob))
+    end
+end
+
 function filter.query(query)
     local tab = gui.getSelectedTab()
     if tab then
@@ -67,6 +78,7 @@ function filter.query(query)
                     selected = item.selected,
                     s = parseSize,
                     t = parseTime,
+                    glob = globber(item.caption),
                 })
 
                 local status, ret = pcall(f)
