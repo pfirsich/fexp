@@ -1,3 +1,5 @@
+local message = require("message")
+
 local commands = {}
 
 commands.registry = {}
@@ -26,7 +28,7 @@ function commands.exec(command, arguments)
     if cmd then
         for _, arg in ipairs(cmd.mandatoryArguments) do
             if arguments[arg] == nil then
-                print(("Missing mandatory argument '%s' for '%s'!"):format(command, arg))
+                message.show(("Missing mandatory argument '%s' for '%s'!"):format(command, arg), true)
                 return
             end
         end
@@ -38,7 +40,7 @@ function commands.exec(command, arguments)
         end
         cmd.func(arguments)
     else
-        print(("Unknown command '%s'!"):format(command))
+        message.show(("Unknown command '%s'!"):format(command), true)
     end
 end
 

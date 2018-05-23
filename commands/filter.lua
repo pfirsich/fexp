@@ -71,19 +71,18 @@ function filter.query(query)
 
                 local status, ret = pcall(f)
                 if status then
-                    print(item.caption, ret)
                     if ret then
                         table.insert(items, item)
                     end
                 else
-                    print("Error executing query:", ret)
+                    gui.message("Error executing query: " .. tostring(ret), true)
                     return
                 end
             end
             tab.items = items
             tab.itemCursor = 0
         else
-            print("Query could not be compiled:", msg)
+            gui.mesage("Query could not be compiled: " .. msg, true)
         end
     end
 end

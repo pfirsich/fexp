@@ -2,6 +2,7 @@ local commands = require("commands")
 local inputcommands = require("inputcommands")
 local insertionSort = require("sort")
 local gui = require("gui")
+local message = require("message")
 
 local sort = {}
 
@@ -36,7 +37,7 @@ end
 
 function sort.sort(by)
     if by ~= "type" and by ~= "name" and by ~= "size" and by ~= "mod" then
-        print(("Unknown sort type '%s'"):format(by))
+        message.show(("Unknown sort type '%s'"):format(by), true)
         return
     end
 

@@ -2,6 +2,7 @@ local gui = require("gui")
 local input = require("input")
 local functional = require("functional")
 local paths = require("paths")
+local message = require("message")
 
 local lg = love.graphics
 local floor = math.floor
@@ -216,7 +217,25 @@ function drawPane(pane, x, y, w, h)
 end
 
 function drawgui.draw()
-    drawPane(gui.rootPane, 0, 0, love.graphics.getDimensions())
+    local statusH = 25
+
+    local w, h = love.graphics.getDimensions()
+    drawPane(gui.rootPane, 0, 0, w, h - statusH)
+
+    lg.setColor(0.2, 0.2, 0.2)
+    local statusY = h - statusH
+    lg.rectangle("fill", 0, statusY, w, statusH)
+    lg.setColor(0, 0, 0)
+    lg.rectangle("line", 0, statusY, w, statusH)
+
+    local font = lg.getFont()
+    local fontH = font:getHeight()
+    local ty = floor(statusY + statusH/2 - fontH/2)
+
+    if message.messageError then
+        lg.setColor(1.0, 0.2, 0.2)
+    end
+    lg.print(message.message, 5, ty)
 end
 
 return drawgui

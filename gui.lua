@@ -1,6 +1,7 @@
 local commands = require("commands")
 local inputcommands = require("inputcommands")
 local input = require("input")
+local message = require("message")
 
 local gui = {}
 
@@ -28,7 +29,7 @@ end
 
 local function checkDir(dir)
     if dir ~= "left" and dir ~= "right" and dir ~= "up" and dir ~= "down" then
-        print(("Unknown direction '%s' for splitPane!"):format(dir))
+        message.show(("Unknown direction '%s' for splitPane!"):format(dir), true)
         return false
     end
     return true
@@ -226,7 +227,7 @@ local function removePane(pane)
             sibling.parent = nil
         end
     else
-        print("Cannot remove root pane!")
+        message.show("Cannot remove root pane!", true)
     end
 end
 
@@ -293,7 +294,7 @@ function gui.closeTab(tabIndex)
             pane.selectedTabIndex = #pane.tabs
         end
     else
-        print("Cannot close tabs for a pane that doesn't have tabs!")
+        message.show("Cannot close tabs for a pane that doesn't have tabs!", true)
     end
 end
 commands.register("closetab", commands.wrap(gui.closeTab, {"tabIndex"}))

@@ -7,6 +7,7 @@ local gui = require("gui")
 local sort = require("sort")
 local paths = require("paths")
 local promptFunction = require("promptFunction")
+local message = require("message")
 
 local filesystem = {}
 
@@ -93,7 +94,7 @@ function filesystem.createDirectory(name)
         local path = paths.join(tab.path, name)
         local success, msg, code = lfs.mkdir(path)
         if not success then
-            print(("mkdir '%s' failed:"):format(path), msg, code)
+            message.show(("mkdir '%s' failed: %s (%d)"):format(path, msg, code), true)
         end
         filesystem.reloadTab()
     end
@@ -104,7 +105,7 @@ filesystem.createDirectoryPrompt = promptFunction("Create Directory (mkdir)", "c
 function filesystem._rename(oldPath, newPath)
     local success, msg, code = os.rename(oldPath, newPath)
     if not success then
-        print(("Renaming of '%s' to '%s' failed:"):format(oldPath, newPath), msg, code)
+        message.show(("Renaming of '%s' to '%s' failed: %s (%d)"):format(oldPath, newPath, msg, code), true)
     end
 end
 
@@ -114,7 +115,7 @@ function filesystem.renameSelection(name)
         local selection = gui.getItemSelection()
         if selection then
             if #selection > 1 then
-                print("Can't rename more than a single item.")
+                message.show("Can't rename more than a single item.", true)
             else
                 filesystem._rename(
                     paths.join(tab.path, selection[1].arguments.name),
@@ -139,7 +140,7 @@ function filesystem.renameSelectionPrompt(text)
             arguments = {},
         }}, text, "name")
     else
-        print("Exactly one item must be selected to rename.")
+        message.show("Exactly one item must be selected to rename.", true)
     end
 end
 commands.register("renameselectionprompt", commands.wrap(filesystem.renameSelectionPrompt, {"text"}))
@@ -161,7 +162,7 @@ function filesystem.remove(path, recursive)
         local dirItems = filesystem.dirItems(path)
 
         if #dirItems > 0 and not recursive then
-            print(("'%s' is not empty!"):format(path))
+            message.show(("'%s' is not empty!"):format(path), true)
         else
             if recursive then
                 for _, item in ipairs(dirItems) do
@@ -171,13 +172,13 @@ function filesystem.remove(path, recursive)
 
             local success, msg, code = lfs.rmdir(path)
             if not success then
-                print(("Removal of '%s' failed:"):format(path), msg, code)
+                message.show(("Removal of '%s' failed: %s (%d)"):format(path, msg, code), true)
             end
         end
     else
         local success, msg, code = os.remove(path)
         if not success then
-            print(("Removal of '%s' failed:"):format(path), msg, code)
+            message.show(("Removal of '%s' failed: %d (%d)"):format(path, msg, code), true)
         end
     end
 end
@@ -196,19 +197,18 @@ inputcommands.register("Delete Selection", "deleteselection")
 inputcommands.register("Delete Selection Recursively", "deleteselection", {recursive = true})
 
 function filesystem._touchFile(path)
-    local success, msg, code = lfs.touch(path)
+    local success, msg = lfs.touch(path)
     if not success then
         -- can I check this more accurately?
         if msg == "No such file or directory" then
             local f, msg = io.open(path, "w")
             if f then
-                print("Close. done")
                 f:close()
             else
-                print(("Cannot create file '%s':"):format(path), msg)
+                message.show(("Cannot create file '%s': %s"):format(path, msg), true)
             end
         else
-            print(("Touch failed for '%s':"):format(path), msg, code)
+            message.show(("Touch failed for '%s': %s"):format(path, msg), true)
         end
     end
 end
