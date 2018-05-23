@@ -255,6 +255,15 @@ inputcommands.register("Merge Pane Down", "mergepane", {dir = "down"})
 inputcommands.register("Merge Pane Left", "mergepane", {dir = "left"})
 inputcommands.register("Merge Pane Right", "mergepane", {dir = "down"})
 
+function gui.resizePane(amount)
+    local pane = gui.selectedPane.parent
+    if pane then
+        pane.splitRatio = pane.splitRatio + amount
+        pane.splitRatio = math.max(0.1, math.min(0.9, pane.splitRatio))
+    end
+end
+commands.register("resizepane", commands.wrap(gui.resizePane, {"amount"}), {"amount"})
+
 function gui.getSelectedTab()
     return gui.selectedPane.tabs[gui.selectedPane.selectedTabIndex]
 end
@@ -262,7 +271,7 @@ end
 function gui.newTab()
     local pane = pane or gui.selectedPane
     local tab = {
-        title = tostring(love.math.random(10000, 100000)),
+        title = "new tab",
         path = "...",
         items = {},
         itemCursor = 0,

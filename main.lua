@@ -36,6 +36,11 @@ function love.load()
     shortcuts.register({"ctrl+m", "left"}, "mergepane", {dir = "left"})
     shortcuts.register({"ctrl+m", "right"}, "mergepane", {dir = "right"})
 
+    shortcuts.register("alt+up", "resizepane", {amount=-0.02})
+    shortcuts.register("alt+down", "resizepane", {amount=0.02})
+    shortcuts.register("alt+left", "resizepane", {amount=-0.02})
+    shortcuts.register("alt+right", "resizepane", {amount=0.02})
+
     shortcuts.register("ctrl+t", "newtab")
     shortcuts.register("ctrl+w", "closetab")
     shortcuts.register("ctrl+tab", "nexttab")
