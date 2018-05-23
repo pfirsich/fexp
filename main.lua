@@ -47,6 +47,7 @@ function love.load()
 
     shortcuts.register("f5", "reloadtab")
     shortcuts.register("ctrl+n", "createdirectoryprompt")
+    shortcuts.register("ctrl+r", "toggleflag", {command = "enumeratepath", flag = "recursive"})
     shortcuts.register("ctrl+g", "enumeratepathprompt")
     shortcuts.register("delete", "deleteselection")
     shortcuts.register("ctrl+delete", "deleteselection", {recursive = true})

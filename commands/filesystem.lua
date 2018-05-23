@@ -87,6 +87,10 @@ local function getDirItems(path, recursive)
 end
 
 function filesystem.enumeratePath(path, recursive)
+    if recursive == nil then
+        recursive = commands.getFlag("enumeratepath", "recursive")
+    end
+
     path = paths.normpath(path)
     local tab = gui.getSelectedTab()
     if not tab then
@@ -95,7 +99,8 @@ function filesystem.enumeratePath(path, recursive)
     end
     tab.path = path
     tab.items = getDirItems(path, recursive)
-    local dotdotCaption = (".. (%s)"):format(paths.normpath(paths.join(path, "..")))
+    local dotdotPath = paths.normpath(paths.join(path, ".."))
+    local dotdotCaption = (".. (%s)"):format(dotdotPath)
     table.insert(tab.items, 1, getDirItem(path, "..", dotdotCaption))
     tab.itemCursor = 1
 

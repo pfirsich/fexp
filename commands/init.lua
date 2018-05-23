@@ -16,10 +16,12 @@ function commands.loadCommands()
 end
 
 function commands.register(command, func, mandatoryArguments, defaultArguments)
+    assert(not commands.registry[command])
     commands.registry[command] = {
         func = func,
         mandatoryArguments = mandatoryArguments or {},
         defaultArguments = defaultArguments or {},
+        flags = {},
     }
 end
 
@@ -63,5 +65,26 @@ commands.register("print", function(args)
 end, {"str"})
 
 commands.register("nop", function() end)
+
+function commands.getFlag(command, flag)
+    return commands.registry[command].flags[flag]
+end
+
+function commands.setFlag(command, flag, value)
+    commands.registry[command].flags[flag] = value
+    message.show(("Set flag '%s' for command '%s' to '%s'"):format(flag, command, tostring(value)))
+end
+
+function commands.toggleFlag(command, flag)
+    commands.setFlag(command, flag, not commands.getFlag(command, flag))
+end
+
+commands.register("setflag", function(args)
+    commands.setFlag(args.command, args.flag, args.value)
+end, {"command", "flag", "value"})
+
+commands.register("toggleflag", function(args)
+    commands.toggleFlag(args.command, args.flag)
+end, {"command", "flag"})
 
 return commands
