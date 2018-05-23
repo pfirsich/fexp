@@ -43,7 +43,7 @@ local function getDirItem(path, file, caption)
     local attr = lfs.attributes(filePath)
 
     local item = {
-        caption = caption or escapeNonAscii(file),
+        caption = escapeNonAscii(caption or file),
         columns = {type = "n/a", mod = 0, size = 0},
         arguments = {name = file, path = filePath},
     }
@@ -77,7 +77,7 @@ local function getDirItems(path, recursive)
             if recursive then
                 local subItems = getDirItems(filePath)
                 for _, item in ipairs(subItems) do
-                    item.caption = paths.join(file, item.caption)
+                    item.caption = escapeNonAscii(paths.join(file, item.caption))
                 end
                 tableExtend(items, subItems)
             end
@@ -104,10 +104,15 @@ function filesystem.enumeratePath(path, recursive)
     if not recursive then
         commands.sort.sort("type")
     end
+
+    if commands.getFlag("enumeratepath", "recursive") then
+        commands.setFlag("enumeratepath", "recursive", false)
+    end
 end
 commands.register("enumeratepath", commands.wrap(filesystem.enumeratePath, {"path", "recursive"}), {"path"})
 filesystem.enumeratePathPrompt = promptFunction("Enumerate/Goto Path", "enumeratepath", "path")
-filesystem.enumeratePathPrompt = promptFunction("Enumerate/Goto Path Recursively", "enumeratepath", "path", nil, {recursive = true})
+filesystem.enumeratePathPromptRec = promptFunction("Enumerate/Goto Path Recursively",
+    "enumeratepath", "path", "enumeratepathrecprompt", {recursive = true})
 
 function filesystem.reloadTab()
     local tab = gui.getSelectedTab()

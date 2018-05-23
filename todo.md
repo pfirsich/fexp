@@ -2,7 +2,7 @@
 * /
 
 # Features
-* take filesystem out of commands submodule, because it is a core module (it is imported by other modules)
+* Copy/Paste
 * Implement a proper text input for the input/prompt
 
 # Maybe
