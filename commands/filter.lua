@@ -4,6 +4,7 @@ local inputcommands = require("inputcommands")
 local functional = require("functional")
 local globtopattern = require("libs.globtopattern").globtopattern
 local input = require("input")
+local promptFunction = require("promptFunction")
 
 local filter = {}
 
@@ -14,52 +15,79 @@ function filter.glob(glob)
         tab.items = functional.filterl(function(item)
             return item.caption:match(pat)
         end, tab.items)
+        tab.itemCursor = 0
     end
 end
 commands.register("filterglob", commands.wrap(filter.glob, {"glob"}), {"glob"})
-
-function filter.globPrompt()
-    local tab = gui.getSelectedTab()
-    if tab then
-        input.toggle({{
-            caption = "Filter Glob",
-            command = "filterglob",
-            arguments = {},
-        }}, "", "glob")
-    end
-end
-commands.register("filterglobprompt", filter.globPrompt)
-inputcommands.register("Filter Glob", "filterglobprompt")
+filter.globPrompt = promptFunction("Filter Glob", "filterglob", "glob")
 
 function filter.selected()
     local tab = gui.getSelectedTab()
     if tab then
-        print(inspect(tab.items))
         tab.items = functional.filterl(function(item)
             return item.selected
         end, tab.items)
-        print(inspect(tab.items))
+        tab.itemCursor = 0
     end
 end
 commands.register("filterselected", filter.selected)
 inputcommands.register("Filter Selected", "filterselected")
 
-function filter.query(query)
-
+local factorMap = {
+    [""] = 1,
+    K = 1024,
+    M = 1024*1024,
+    G = 1024*1024*1024,
+    T = 1024*1024*1024*1024,
+}
+local function parseSize(str)
+    local num, prefix = str:match("(%d+%.?%d*)%s*([KMGT]?)B?")
+    num = tonumber(num)
+    return math.floor(num * factorMap[prefix])
 end
-commands.register("filterquery", commands.wrap(filter.query, {"query"}), {"query"})
 
-function filter.queryPrompt()
+local function parseTime(str)
+    error("Not yet implemented!")
+end
+
+function filter.query(query)
     local tab = gui.getSelectedTab()
     if tab then
-        input.toggle({{
-            caption = "Filter Query",
-            command = "filterquery",
-            arguments = {},
-        }}, "", "query")
+        query = "return " .. query
+        local f, msg = loadstring(query)
+        if f then
+            local items = {}
+            for _, item in ipairs(tab.items) do
+                setfenv(f, {
+                    type = item.columns.type,
+                    mod = item.columns.mod,
+                    size = item.columns.size,
+                    name = item.arguments.name,
+                    path = item.arguments.path,
+                    selected = item.selected,
+                    s = parseSize,
+                    t = parseTime,
+                })
+
+                local status, ret = pcall(f)
+                if status then
+                    print(item.caption, ret)
+                    if ret then
+                        table.insert(items, item)
+                    end
+                else
+                    print("Error executing query:", ret)
+                    return
+                end
+            end
+            tab.items = items
+            tab.itemCursor = 0
+        else
+            print("Query could not be compiled:", msg)
+        end
     end
 end
-commands.register("filterqueryprompt", filter.queryPrompt)
-inputcommands.register("Filter Query", "filterqueryprompt")
+commands.register("filterquery", commands.wrap(filter.query, {"query"}), {"query"})
+filter.queryPrompt = promptFunction("Filter Query", "filterquery", "query")
 
 return filter
