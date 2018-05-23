@@ -1,7 +1,7 @@
 * Bugs: /
 * File operations
-    - rename
-    - copy / paste (needs some sort of feedback?)
+    - copy / paste (needs some sort of feedback/progress screen?)
+    - (later/optional) make sure I am actually modifying the system clipboards
 * Implement a proper text input for the input/prompt
 * Proper pane resizing? How would that even work?
 * Remove "escapeNonAscii" function and somehow handle it properly

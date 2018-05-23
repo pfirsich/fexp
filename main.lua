@@ -52,6 +52,7 @@ function love.load()
     shortcuts.register("ctrl+g", "enumeratepathprompt")
     shortcuts.register("delete", "deleteselection")
     shortcuts.register("ctrl+delete", "deleteselection", {recursive = true})
+    shortcuts.register("f2", "renameselectionprompt")
 
     shortcuts.register("tab", "gotoitemprompt")
     shortcuts.register("ctrl+space", "togglecommandinput")

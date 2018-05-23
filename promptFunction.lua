@@ -2,7 +2,7 @@ local input = require("input")
 local commands = require("commands")
 local inputcommands = require("inputcommands")
 
-local function promptFunction(title, command, inputArgument, arguments, promptCommand)
+local function promptFunction(title, command, inputArgument, promptCommand)
     local func = function(text)
         input.toggle({{
             caption = "> " .. title,

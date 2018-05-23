@@ -47,7 +47,7 @@ function filesystem.enumeratePath(path)
             local item = {
                 caption = escapeNonAscii(file),
                 columns = {type = "n/a", mod = 0, size = 0},
-                arguments = {path = filePath},
+                arguments = {name = file, path = filePath},
             }
 
             if attr then
@@ -79,7 +79,9 @@ filesystem.enumeratePathPrompt = promptFunction("Enumerate/Goto Path", "enumerat
 function filesystem.reloadTab()
     local tab = gui.getSelectedTab()
     if tab then
+        local cursor = tab.itemCursor
         filesystem.enumeratePath(tab.path)
+        tab.itemCursor = math.max(1, math.min(#tab.items, cursor))
     end
 end
 commands.register("reloadtab", filesystem.reloadTab)
@@ -99,12 +101,49 @@ end
 commands.register("createdirectory", commands.wrap(filesystem.createDirectory, {"name"}), {"name"})
 filesystem.createDirectoryPrompt = promptFunction("Create Directory (mkdir)", "createdirectory", "name")
 
-function filesystem.renameFile(oldPath, newPath)
+function filesystem._rename(oldPath, newPath)
     local success, msg, code = os.rename(oldPath, newPath)
     if not success then
         print(("Renaming of '%s' to '%s' failed:"):format(oldPath, newPath), msg, code)
     end
 end
+
+function filesystem.renameSelection(name)
+    local tab = gui.getSelectedTab()
+    if name:len() > 0 and tab and tab.path then
+        local selection = gui.getItemSelection()
+        if selection then
+            if #selection > 1 then
+                print("Can't rename more than a single item.")
+            else
+                filesystem._rename(
+                    paths.join(tab.path, selection[1].arguments.name),
+                    paths.join(tab.path, name))
+                filesystem.reloadTab()
+            end
+        end
+    end
+end
+commands.register("renameselection", commands.wrap(filesystem.renameSelection, {"name"}), {"name"})
+
+function filesystem.renameSelectionPrompt(text)
+    local selection = gui.getItemSelection()
+    if selection and #selection == 1 then
+        if text == nil or text:len() == 0 then
+            text = selection[1].arguments.name
+        end
+
+        input.toggle({{
+            caption = "> Rename Selection",
+            command = "renameselection",
+            arguments = {},
+        }}, text, "name")
+    else
+        print("Exactly one item must be selected to rename.")
+    end
+end
+commands.register("renameselectionprompt", commands.wrap(filesystem.renameSelectionPrompt, {"text"}))
+inputcommands.register("Rename Selection", "renameselectionprompt")
 
 function filesystem.dirItems(path)
     local items = {}
@@ -149,8 +188,8 @@ function filesystem.deleteSelection(recursive)
         for _, item in ipairs(selection) do
             filesystem.remove(item.arguments.path, recursive)
         end
+        filesystem.reloadTab()
     end
-    filesystem.reloadTab()
 end
 commands.register("deleteselection", commands.wrap(filesystem.deleteSelection, {"recursive"}))
 inputcommands.register("Delete Selection", "deleteselection")
