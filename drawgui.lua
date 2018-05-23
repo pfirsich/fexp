@@ -1,6 +1,7 @@
 local gui = require("gui")
 local input = require("input")
 local functional = require("functional")
+local paths = require("paths")
 
 local lg = love.graphics
 local floor = math.floor
@@ -120,7 +121,11 @@ function drawPane(pane, x, y, w, h)
             lg.setColor(0.4, 0.4, 0.4)
             lg.rectangle("line", tabX, y, tabWidth, tabHeight)
             lg.setColor(1, 1, 1)
-            textRegion(tab.title, tabX, y, tabWidth, tabHeight)
+            local title = tab.title
+            if title:len() == 0 then
+                title = tab.path and paths.basename(tab.path) or "unnamed tab"
+            end
+            textRegion(title, tabX, y, tabWidth, tabHeight)
 
             if tabSelected then
                 lg.setColor(1, 1, 1)

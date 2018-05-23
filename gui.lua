@@ -271,8 +271,8 @@ end
 function gui.newTab()
     local pane = pane or gui.selectedPane
     local tab = {
-        title = "new tab",
-        path = "...",
+        title = "",
+        path = nil,
         items = {},
         itemCursor = 0,
         showModCol = true,

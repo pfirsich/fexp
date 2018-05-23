@@ -16,12 +16,14 @@ local function rfind(str, char)
     return i and i - 1 or nil
 end
 
-local function rstrip(str, path)
-    return str:match("([^" .. path .. "]*)[" .. path .. "]*")
+local function rstrip(str, pat)
+    local ret = str:gsub("[" .. pat .. "]*$", "")
+    return ret
 end
 
-local function lstrip(str, path)
-    return str:match("[" .. path .. "]*" .. "([^" .. path .. "]*)")
+local function lstrip(str, pat)
+    local ret = str:gsub("^[" .. pat .. "]*", "")
+    return ret
 end
 
 local function strip(str, pat)
@@ -77,8 +79,6 @@ function paths.normpath(path)
     for part in path:gmatch("[^" .. paths.sep .. "]+") do
         table.insert(parts, part)
     end
-
-    print(inspect(parts))
 
     local i = 1
     while i <= #parts do

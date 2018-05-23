@@ -1,13 +1,7 @@
 * Bugs: /
-* Conceptual Revamp
-    - Introduce the notion of a current directory and only make items be filtered out/in
-* Commands
-    - refresh (requires current directory too)
 * File operations
     - rename
-    - copy
-    - paste
-    - mkdir
+    - copy / paste (needs some sort of feedback?)
 * Implement a proper text input for the input/prompt
 * Proper pane resizing? How would that even work?
 * Remove "escapeNonAscii" function and somehow handle it properly
