@@ -1,3 +1,5 @@
+local inspect = require("libs.inspect")
+
 local message = require("message")
 
 local commands = {}

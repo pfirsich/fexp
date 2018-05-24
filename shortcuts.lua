@@ -1,3 +1,5 @@
+local inspect = require("inspect")
+
 local commands = require("commands")
 local functional = require("util.functional")
 local message = require("message")

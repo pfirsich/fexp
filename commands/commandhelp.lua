@@ -1,3 +1,5 @@
+local inspect = require("libs.inspect")
+
 local gui = require("gui")
 local commands = require("commands")
 local inputcommands = require("inputcommands")
