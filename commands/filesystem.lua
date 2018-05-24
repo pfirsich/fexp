@@ -242,7 +242,11 @@ function filesystem.dirItems(path)
 end
 
 function filesystem.remove(path, recursive)
-    local attr = lfs.attributes(path)
+    local attr, err, code = lfs.attributes(path)
+    if not attr then
+        message.show(("Could not get attributes of '%s': %s (%d)"):format(path, err, code))
+        return
+    end
     if attr.mode == "directory" then
         local dirItems = filesystem.dirItems(path)
 

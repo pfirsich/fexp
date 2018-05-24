@@ -3,10 +3,11 @@
 * (Linux only) If you Goto a path and it's a file (instead of a dir), it will show you "..", which does not actually go to the directory that file is in.
 
 # Features
+* split up gui file.
 * Implement a proper text input for the input/prompt
 
 # Maybe
-* A nice feedback/progress screen for deletion/paste
+* A nice feedback/progress screen for deletion/paste (maybe make a "mock-directory" in which each item is one copy operation with progress, eta in brackets, deleting the items aborts them)
 * Make reload not sort by name/type, but the last used sorting for that directory
 
 # Non-Prototype stuff
