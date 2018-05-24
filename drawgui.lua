@@ -69,9 +69,11 @@ function drawTabItems(tab, x, y, w, h)
                 tx = tx + modWidth + 20
             end
             if tab.showSizeCol then
-                local sizeStr = sizeToString(item.columns.size)
-                local width = font:getWidth(sizeStr)
-                lg.print(sizeStr, tx + sizeWidth - width, ty)
+                if item.columns.type ~= "directory" then
+                    local sizeStr = sizeToString(item.columns.size)
+                    local width = font:getWidth(sizeStr)
+                    lg.print(sizeStr, tx + sizeWidth - width, ty)
+                end
                 tx = tx + sizeWidth + 20
             end
 
