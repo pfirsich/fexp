@@ -30,6 +30,11 @@ function commands.register(command, func, mandatoryArguments, defaultArguments)
         defaultArguments = defaultArguments or {},
         flags = {},
     }
+    return commands.registry[command]
+end
+
+function commands.setHelp(command, help)
+    commands.registry[command].help = help
 end
 
 function commands.exec(command, arguments)
@@ -74,12 +79,15 @@ end
 commands.register("print", function(args)
     print(args.str)
 end, {"str"})
+commands.setHelp("print", "Print to system console.")
 
 commands.register("nop", function() end)
+commands.setHelp("nop", "Does nothing.")
 
 commands.register("togglecommandmessages", function()
     commands.messages = not commands.messages
 end)
+commands.setHelp("togglecommandmessages", "Toggle status line information about executed commands.")
 
 function commands.getFlag(command, flag)
     return commands.registry[command].flags[flag]
