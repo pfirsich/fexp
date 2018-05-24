@@ -9,6 +9,7 @@ local paths = require("util.paths")
 local promptFunction = require("util.promptFunction")
 local message = require("message")
 local functional = require("util.functional")
+local clipboard = require("clipboard")
 
 local filesystem = {}
 
@@ -137,9 +138,11 @@ filesystem.enumeratePathPrompt = promptFunction("Enumerate/Goto Path", "enumerat
 filesystem.enumeratePathPromptRec = promptFunction("Enumerate/Goto Path Recursively",
     "enumeratepath", "path", "enumeratepathrecprompt", {recursive = true})
 
-function filesystem.reloadTab()
-    local tab = gui.getSelectedTab()
-    if tab then
+function filesystem.reloadTab(tab)
+    if not tab then
+        tab = gui.getSelectedTab()
+    end
+    if tab and tab.path then
         local cursor = tab.itemCursor
         filesystem.enumeratePath(tab.path)
         tab.itemCursor = math.max(1, math.min(#tab.items, cursor))
@@ -148,13 +151,35 @@ end
 commands.register("reloadtab", filesystem.reloadTab)
 inputcommands.register("Reload Tab", "reloadtab")
 
+local function reloadPane(pane, recursive, allTabs)
+    pane = pane or gui.selectedPane
+    if pane.tabs then
+        if allTabs then
+            for _, tab in ipairs(pane.tabs) do
+                filesystem.reloadTab(tab)
+            end
+        else
+            filesystem.reloadTab(pane.tabs[pane.selectedTabIndex])
+        end
+    elseif recursive then
+        reloadPane(pane.children[1], recursive, allTabs)
+        reloadPane(pane.children[2], recursive, allTabs)
+    end
+end
+
+function filesystem.reloadAllTabs()
+    reloadPane(gui.rootPane, true, true)
+end
+commands.register("reloadalltabs", filesystem.reloadAllTabs)
+inputcommands.register("Reload All Tabs", "reloadalltabs")
+
 function filesystem.createDirectory(name)
     local tab = gui.getSelectedTab()
     if tab and tab.path then
         local path = paths.join(tab.path, name)
         local success, msg, code = lfs.mkdir(path)
         if not success then
-            message.show(("mkdir '%s' failed: %s (%d)"):format(path, msg, code), true)
+            message.show(("mkdir '%s' failed: %s"):format(path, msg), true)
         end
         filesystem.reloadTab()
     end
@@ -282,5 +307,112 @@ function filesystem.touchFile(name)
 end
 commands.register("touchfile", commands.wrap(filesystem.touchFile, {"name"}), {"name"})
 filesystem.touchPrompt = promptFunction("Touch File", "touchfile", "name")
+
+function filesystem.copySelection()
+    local selection = gui.getItemSelection()
+    if selection then
+        clipboard.set("copyfiles", functional.map(function(item)
+            return item.arguments.path
+        end, selection))
+    end
+end
+commands.register("copyselection", filesystem.copySelection)
+inputcommands.register("Copy Selection", "copyselection")
+
+function filesystem.cutSelection()
+    local selection = gui.getItemSelection()
+    if selection then
+        clipboard.set("cutfiles", functional.map(function(item)
+            return item.arguments.path
+        end, selection))
+    end
+end
+commands.register("cutselection", filesystem.cutSelection)
+inputcommands.register("Cut Selection", "cutselection")
+
+-- https://gist.github.com/kaeza/bf76c9742f44905f513db9afb19bdac9
+function filesystem.copyFile(fromPath, toPath, blockSize)
+    print(fromPath, "->\n\t", toPath)
+    blockSize = blockSize or 64*1024
+
+    local sf, df, err
+    local function bail(...)
+        if sf then sf:close() end
+        if df then df:close() end
+        return ...
+    end
+
+    sf, err = io.open(fromPath, "rb")
+    if not sf then return bail(nil, err) end
+    df, err = io.open(toPath, "wb")
+    if not df then return bail(nil, err) end
+
+    while true do
+        local ok, data
+        data = sf:read(blockSize)
+        if not data then break end
+        ok, err = df:write(data)
+        if not ok then return bail(nil, err) end
+    end
+    return bail(true)
+end
+
+function filesystem.copyPath(fromPath, toPath)
+    local attr, err, code = lfs.attributes(fromPath)
+    if attr then
+        if attr.mode == "directory" then
+            local err, iter, dirObj = listDir(fromPath)
+            if err then
+                message.show(("Could not list directory '%s': %s"):format(path, err), true)
+            else
+                local success, err, code = lfs.mkdir(toPath)
+                if not success then
+                    message.show(("Could not create directory '%s': %s (%d)"):format(toPath, err, code))
+                end
+                for file in iter, dirObj do
+                    if file ~= "." and file ~= ".." then
+                        local filePath = paths.join(fromPath, file)
+                        filesystem.copyPath(filePath, paths.join(toPath, file))
+                    end
+                end
+            end
+        elseif attr.mode == "file" then
+            local success, err = filesystem.copyFile(fromPath, toPath)
+            if not success then
+                message.show(("Could not copy file '%s' to '%s': %s"):format(fromPath, toPath, err), true)
+            end
+        else
+            message.show(("Don't know how to copy '%s'"):format(attr.mode))
+        end
+    else
+        message.show(("Could not get attributes for file '%s': %s (%d)"):format(fromPath, err, code), true)
+    end
+end
+
+function filesystem.pasteClipboard()
+    local tab = gui.getSelectedTab()
+    if tab and tab.path then
+        local clipType, clipData = clipboard.get()
+        if clipType == "cutfiles" then
+            for _, item in ipairs(clipData) do
+                local target = paths.join(tab.path, paths.basename(item))
+                filesystem._rename(item, target)
+            end
+            clipboard.set()
+            filesystem.reloadAllTabs()
+        elseif clipType == "copyfiles" then
+            for _, item in ipairs(clipData) do
+                local target = paths.join(tab.path, paths.basename(item))
+                filesystem.copyPath(item, target)
+            end
+            clipboard.set()
+            filesystem.reloadAllTabs()
+        elseif clipType then
+            gui.message(("Cannot paste clipboard data of type '%s'"):format(clipType), true)
+        end
+    end
+end
+commands.register("pasteclipboard", filesystem.pasteClipboard)
+inputcommands.register("Paste Clipboard", "pasteclipboard")
 
 return filesystem

@@ -1,10 +1,8 @@
 # Bugs
-* Paths like `/../../../tmp` crash
 * `normpath(/..) = /..` - is that desired?
-* If you Goto a path and it's a file (instead of a dir), it will show you "..", which does not actually go to the directory that file is in.
+* (Linux only) If you Goto a path and it's a file (instead of a dir), it will show you "..", which does not actually go to the directory that file is in.
 
 # Features
-* Copy/Paste
 * Implement a proper text input for the input/prompt
 
 # Maybe

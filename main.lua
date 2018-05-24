@@ -1,5 +1,6 @@
 local lfs = require("lfs")
 inspect = require("libs.inspect")
+
 require("run")
 local shortcuts = require("shortcuts")
 local commands = require("commands")
@@ -48,12 +49,16 @@ function love.load()
     shortcuts.register("ctrl+f2", "renametabprompt")
 
     shortcuts.register("f5", "reloadtab")
+    shortcuts.register("ctrl+f5", "reloadalltabs")
     shortcuts.register("ctrl+n", "createdirectoryprompt")
     shortcuts.register("ctrl+r", "toggleflag", {command = "enumeratepath", flag = "recursive"})
     shortcuts.register("ctrl+g", "enumeratepathprompt")
     shortcuts.register("delete", "deleteselection")
     shortcuts.register("ctrl+delete", "deleteselection", {recursive = true})
     shortcuts.register("f2", "renameselectionprompt")
+    shortcuts.register("ctrl+c", "copyselection")
+    shortcuts.register("ctrl+x", "cutselection")
+    shortcuts.register("ctrl+v", "pasteclipboard")
 
     shortcuts.register("tab", "gotoitemprompt")
     shortcuts.register("ctrl+space", "togglecommandinput")

@@ -3,6 +3,7 @@ local input = require("input")
 local functional = require("util.functional")
 local paths = require("util.paths")
 local message = require("message")
+local clipboard = require("clipboard")
 
 local lg = love.graphics
 local floor = math.floor
@@ -271,6 +272,12 @@ function drawgui.draw()
         local selection = gui.getSelectedItems()
         if selection and #selection > 0 then
             rightText = rightText .. (", %d selected"):format(#selection)
+        end
+
+        local clipType, clipData = clipboard.get()
+        if clipType == "copyfiles" or clipType == "cutfiles" then
+            rightText = rightText .. (", %d in clipboard (%s)"):format(
+                #clipData, clipType == "copyfiles" and "copy" or "cut")
         end
         lg.print(rightText, w - font:getWidth(rightText) - 5, ty)
     end

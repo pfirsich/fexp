@@ -449,14 +449,13 @@ end
 function gui.getItemSelection()
     local tab = gui.getSelectedTab()
     if tab then
-        local ret = gui.getSelectedItems()
-
-        if #ret == 0 then
+        if not tab.items[tab.itemCursor].selected then
+            for _, item in ipairs(tab.items) do
+                item.selected = false
+            end
             tab.items[tab.itemCursor].selected = true
-            return {tab.items[tab.itemCursor]}
-        else
-            return ret
         end
+        return gui.getSelectedItems()
     end
     return nil
 end
