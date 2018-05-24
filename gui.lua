@@ -366,26 +366,43 @@ end
 commands.register("togglesizecol", gui.toggleSizeCol)
 inputcommands.register("Toggle Size Column", "togglesizecol")
 
-function gui.moveItemCursor(delta)
+function gui.moveItemCursor(delta, selectItems)
     local tab = gui.getSelectedTab()
     if tab then
+        local setSelect = true --not tab.items[tab.itemCursor].selected
+        if selectItems then
+            tab.items[tab.itemCursor].selected = setSelect
+        end
         tab.itemCursor = tab.itemCursor + delta
         tab.itemCursor = math.max(1, math.min(#tab.items, tab.itemCursor))
+        if selectItems then
+            tab.items[tab.itemCursor].selected = setSelect
+        end
     end
 end
-commands.register("moveitemcursor", commands.wrap(gui.moveItemCursor, {"delta"}), {"delta"})
+commands.register("moveitemcursor", commands.wrap(gui.moveItemCursor, {"delta", "selectItems"}), {"delta"})
 
-function gui.seekItemCursor(pos)
+function gui.seekItemCursor(pos, selectItems)
     local tab = gui.getSelectedTab()
     if tab then
         if pos < 0 then
             pos = #tab.items + pos + 1
         end
+        local startRange = tab.itemCursor
         tab.itemCursor = pos
         tab.itemCursor = math.max(1, math.min(#tab.items, tab.itemCursor))
+        if selectItems then
+            local endRange = tab.itemCursor
+            if endRange < startRange then
+                startRange, endRange = endRange, startRange
+            end
+            for i = startRange, endRange do
+                tab.items[i].selected = true
+            end
+        end
     end
 end
-commands.register("seekitemcursor", commands.wrap(gui.seekItemCursor, {"pos"}), {"pos"})
+commands.register("seekitemcursor", commands.wrap(gui.seekItemCursor, {"pos", "selectItems"}), {"pos"})
 
 function gui.gotoItemPrompt(text)
     local tab = gui.getSelectedTab()

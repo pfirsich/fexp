@@ -7,6 +7,7 @@
 
 # Maybe
 * A nice feedback/progress screen for deletion/paste
+* Make reload not sort by name/type, but the last used sorting for that directory
 
 # Non-Prototype stuff
 * Query Filter
@@ -19,3 +20,4 @@
 * Trigger repaint by pane and cache panes in Canvases
 * Give all gui functions optional pane-indices (remove the half-assed code right now and add this when it's needed)
 * Input History (favor most common used entries) - first step: keep the input and show the last input when opening the prompt
+* Mouse controls?
