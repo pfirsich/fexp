@@ -201,6 +201,13 @@ function Pane:mergeInto(destPane)
 end
 
 function Pane:selectTab(tabIndex)
+    -- this is effectively modulo, but without the cumbersome +1 and -1 everywhere
+    while tabIndex > #self.tabs do
+        tabIndex = tabIndex - #self.tabs
+    end
+    while tabIndex < 1 do
+        tabIndex = tabIndex + #self.tabs
+    end
     self.selectedTabIndex = math.min(#self.tabs, math.max(1, tabIndex))
 end
 
