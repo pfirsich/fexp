@@ -65,21 +65,37 @@ local function getDirItem(path, file, caption)
     return item
 end
 
+local function listDir(path)
+    local success, ret, ret2 = pcall(lfs.dir, path)
+    if success then
+        return nil, ret, ret2
+    else
+        return ret, nil, nil
+    end
+end
+
 local function getDirItems(path, recursive)
     path = paths.normpath(path)
     local items = {}
-    for file in lfs.dir(path) do
+    local err, iter, dirObj = listDir(path)
+    if err then
+        message.show(("Could not list directory '%s': %s"):format(path, err), true)
+        return nil
+    end
+    for file in iter, dirObj do
         if file ~= "." and file ~= ".." then
             local filePath = paths.join(path, file)
             local item = getDirItem(path, file)
             table.insert(items, item)
 
-            if recursive then
+            if item.columns.type == "directory" and recursive then
                 local subItems = getDirItems(filePath, recursive)
-                for _, item in ipairs(subItems) do
-                    item.caption = escapeNonAscii(paths.join(file, item.caption))
+                if subItems then
+                    for _, item in ipairs(subItems) do
+                        item.caption = escapeNonAscii(paths.join(file, item.caption))
+                    end
+                    tableExtend(items, subItems)
                 end
-                tableExtend(items, subItems)
             end
         end
     end
@@ -99,15 +115,17 @@ function filesystem.enumeratePath(path, recursive)
     end
     tab.path = path
     tab.items = getDirItems(path, recursive)
-    local dotdotPath = paths.normpath(paths.join(path, ".."))
-    local dotdotCaption = (".. (%s)"):format(dotdotPath)
-    table.insert(tab.items, 1, getDirItem(path, "..", dotdotCaption))
-    tab.itemCursor = 1
+    if tab.items then
+        local dotdotPath = paths.normpath(paths.join(path, ".."))
+        local dotdotCaption = (".. (%s)"):format(dotdotPath)
+        table.insert(tab.items, 1, getDirItem(path, "..", dotdotCaption))
+        tab.itemCursor = 1
 
-    -- because the sort is stable items with the same type will still be sorted by name
-    commands.sort.sort("name")
-    if not recursive then
-        commands.sort.sort("type")
+        -- because the sort is stable items with the same type will still be sorted by name
+        commands.sort.sort("name")
+        if not recursive then
+            commands.sort.sort("type")
+        end
     end
 
     if commands.getFlag("enumeratepath", "recursive") then
