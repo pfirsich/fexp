@@ -1,3 +1,4 @@
+local lfs = require("lfs")
 inspect = require("libs.inspect")
 require("run")
 local shortcuts = require("shortcuts")
@@ -79,8 +80,8 @@ function love.load()
     shortcuts.register({"ctrl+s", "s"}, "sort", {by = "size"})
     shortcuts.register({"ctrl+s", "t"}, "sort", {by = "type"})
 
-    inputcommands.register("Bookmark: Home", "enumeratepath", {path = "C:/Users/Joel"})
-    inputcommands.register("Recursive Enum Test", "enumeratepath", {path = "C:/Users/Joel/.android", recursive = true})
+    local home = os.getenv("HOME") or (os.getenv("HOMEDRIVE") .. os.getenv("HOMEPATH")) or lfs.currentdir()
+    inputcommands.register("Bookmark: Home", "enumeratepath", {path = home})
 
     inputcommands.register("Quit", "quit")
 
