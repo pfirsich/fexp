@@ -124,10 +124,6 @@ function drawPane(pane, x, y, w, h)
 
     if pane.tabs then
         local paneSelected = pane == gui.selectedPane
-        if paneSelected then
-            lg.setColor(1.0, 0, 1.0)
-            lg.rectangle("line", x, y, w, h)
-        end
 
         local numTabs = #pane.tabs
         local tabWidth = w / numTabs
@@ -178,60 +174,67 @@ function drawPane(pane, x, y, w, h)
             lg.print("No open tabs.", floor(tx), floor(ty))
         end
 
-        if paneSelected and input.isActive() then
-            local numEntries = math.min(10, #input.visibleEntries)
-            local inputW = 0.8 * w
-            local inputY = y + 70
-            local lineHeight = 30
-            local inputH = (numEntries + 1) * lineHeight
-            local inputX = x + w/2 - inputW/2
+        if not paneSelected then
+            lg.setColor(0.0, 0.0, 0.0, 0.2)
+            lg.rectangle("fill", x, y, w, h)
+        else
+            lg.setColor(1.0, 1.0, 1.0, 1.0)
+            lg.rectangle("line", x + 1, y + 1, w - 2, h - 2)
+            if input.isActive() then
+                local numEntries = math.min(10, #input.visibleEntries)
+                local inputW = 0.8 * w
+                local inputY = y + 70
+                local lineHeight = 30
+                local inputH = (numEntries + 1) * lineHeight
+                local inputX = x + w/2 - inputW/2
 
-            lg.setColor(0.3, 0.3, 0.3)
-            lg.rectangle("fill", inputX, inputY, inputW, inputH)
-            lg.setColor(1, 1, 1)
-            textRegion(input.text, inputX, inputY, inputW, lineHeight)
-
-            -- draw entries
-            local entryY = inputY + lineHeight
-            local entryH = inputH - lineHeight
-            lg.line(inputX, entryY, inputX + inputW, entryY)
-
-            -- here the scrollOffset is an index offset (not in pixels!)
-            input._scrollOffset = input._scrollOffset or 0
-            if input.selectedEntry == nil then
-                input._scrollOffset = 0
-            else
-                local cursor = input.selectedEntry - input._scrollOffset
-                if cursor < 1 then
-                    input._scrollOffset = math.max(0, input._scrollOffset + cursor - 1)
-                elseif cursor > numEntries then
-                    input._scrollOffset = input._scrollOffset + (cursor - numEntries)
-                end
-            end
-
-            for i = input._scrollOffset + 1, input._scrollOffset + numEntries do
-                local entry = input.visibleEntries[i]
-
-                if input.selectedEntry == i then
-                    lg.setColor(0.4, 0.4, 0.4)
-                    lg.rectangle("fill", inputX, entryY, inputW, lineHeight)
-                end
-
-                if entry.annotation then
-                    local annotOffset = inputW - font:getWidth(entry.annotation) - 20
-                    lg.setColor(0.7, 0.7, 0.7)
-                    textRegion(entry.annotation, inputX, entryY, inputW, lineHeight, nil, annotOffset)
-                end
-
+                lg.setColor(0.3, 0.3, 0.3)
+                lg.rectangle("fill", inputX, inputY, inputW, inputH)
                 lg.setColor(1, 1, 1)
-                textRegion(entry.coloredText, inputX, entryY, inputW, lineHeight)
+                textRegion(input.text, inputX, inputY, inputW, lineHeight)
 
-                entryY = entryY + lineHeight
+                -- draw entries
+                local entryY = inputY + lineHeight
+                local entryH = inputH - lineHeight
+                lg.line(inputX, entryY, inputX + inputW, entryY)
+
+                -- here the scrollOffset is an index offset (not in pixels!)
+                input._scrollOffset = input._scrollOffset or 0
+                if input.selectedEntry == nil then
+                    input._scrollOffset = 0
+                else
+                    local cursor = input.selectedEntry - input._scrollOffset
+                    if cursor < 1 then
+                        input._scrollOffset = math.max(0, input._scrollOffset + cursor - 1)
+                    elseif cursor > numEntries then
+                        input._scrollOffset = input._scrollOffset + (cursor - numEntries)
+                    end
+                end
+
+                for i = input._scrollOffset + 1, input._scrollOffset + numEntries do
+                    local entry = input.visibleEntries[i]
+
+                    if input.selectedEntry == i then
+                        lg.setColor(0.4, 0.4, 0.4)
+                        lg.rectangle("fill", inputX, entryY, inputW, lineHeight)
+                    end
+
+                    if entry.annotation then
+                        local annotOffset = inputW - font:getWidth(entry.annotation) - 20
+                        lg.setColor(0.7, 0.7, 0.7)
+                        textRegion(entry.annotation, inputX, entryY, inputW, lineHeight, nil, annotOffset)
+                    end
+
+                    lg.setColor(1, 1, 1)
+                    textRegion(entry.coloredText, inputX, entryY, inputW, lineHeight)
+
+                    entryY = entryY + lineHeight
+                end
+
+                scrollIndicator(inputX, inputY + lineHeight, inputW, entryH,
+                    numEntries / #input.visibleEntries,
+                    input._scrollOffset / (#input.visibleEntries - numEntries))
             end
-
-            scrollIndicator(inputX, inputY + lineHeight, inputW, entryH,
-                numEntries / #input.visibleEntries,
-                input._scrollOffset / (#input.visibleEntries - numEntries))
         end
     else
         assert(pane.splitType == "h" or pane.splitType == "v")
