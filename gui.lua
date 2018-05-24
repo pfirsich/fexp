@@ -269,6 +269,58 @@ function gui.getSelectedTab()
     return gui.selectedPane.tabs[gui.selectedPane.selectedTabIndex]
 end
 
+local function foreachPane(func, pane)
+    pane = pane or gui.rootPane
+    func(pane)
+    if not pane.tabs then
+        foreachPane(func, pane.children[1])
+        foreachPane(func, pane.children[2])
+    end
+end
+
+local function indexOf(lst, needle)
+    for i, item in ipairs(lst) do
+        if item == needle then
+            return i
+        end
+    end
+    return nil
+end
+
+function gui.getPaneFromTab(tab)
+    local tabPane, tabIndex = nil, nil
+    foreachPane(function(pane)
+        local idx = pane.tabs and indexOf(pane.tabs, tab)
+        if idx then
+            print("Tab", tab.title, "is in", findPane(pane))
+            assert(not tabPane)
+            tabPane = pane
+            tabIndex = idx
+        end
+    end)
+    return tabPane, tabIndex
+end
+
+function gui.focusTab(tab)
+    local pane, index = gui.getPaneFromTab(tab)
+    gui.selectedPane = pane
+    pane.selectedTabIndex = index
+end
+
+function gui.withFocusedTab(tab, func)
+    -- save
+    local focusedTab = gui.getSelectedTab()
+
+    -- context
+    gui.focusTab(tab)
+    func()
+
+    -- restore
+    if focusedTab then
+        gui.focusTab(focusedTab)
+    end
+end
+
 function gui.newTab()
     local pane = pane or gui.selectedPane
     local tab = {

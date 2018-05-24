@@ -143,9 +143,11 @@ function filesystem.reloadTab(tab)
         tab = gui.getSelectedTab()
     end
     if tab and tab.path then
-        local cursor = tab.itemCursor
-        filesystem.enumeratePath(tab.path)
-        tab.itemCursor = math.max(1, math.min(#tab.items, cursor))
+        gui.withFocusedTab(tab, function()
+            local cursor = tab.itemCursor
+            filesystem.enumeratePath(tab.path, false)
+            tab.itemCursor = math.max(1, math.min(#tab.items, cursor))
+        end)
     end
 end
 commands.register("reloadtab", filesystem.reloadTab)
