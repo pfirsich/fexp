@@ -116,7 +116,7 @@ function shortcuts.keypressed(key, scancode, isRepeat)
     if shortcuts.messages and #matchingShortcuts > 0 then
         message.show("Execute shortcut: " .. table.concat(functional.map(function(sc)
             return ("%s -> %s%s"):format(inspect(sc.shortcutRaw), sc.command,
-                inspect(sc.arguments, {newline=""}))
+                inspect(sc.arguments, {newline="", indent=""}))
         end, matchingShortcuts)))
     end
 end

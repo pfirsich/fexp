@@ -50,7 +50,7 @@ function commands.exec(command, arguments)
         cmd.func(arguments)
 
         if commands.messages then
-            message.show(("Executed %s%s"):format(command, inspect(arguments, {newline=""})))
+            message.show(("Executed %s%s"):format(command, inspect(arguments, {newline="", indent=""})))
         end
     else
         message.show(("Unknown command '%s'!"):format(command), true)
