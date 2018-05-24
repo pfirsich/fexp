@@ -101,6 +101,8 @@ function paths.normpath(path)
                 i = i - 1
                 table.remove(parts, i)
                 table.remove(parts, i)
+            else
+                i = i + 1
             end
         else
             i = i + 1
