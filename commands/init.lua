@@ -4,6 +4,8 @@ local commands = {}
 
 commands.registry = {}
 
+commands.messages = true
+
 function commands.loadCommands()
     for _, file in ipairs(love.filesystem.getDirectoryItems("commands")) do
         if file:sub(-4) == ".lua" and file ~= "init.lua" then
@@ -41,6 +43,10 @@ function commands.exec(command, arguments)
             end
         end
         cmd.func(arguments)
+
+        if commands.messages then
+            message.show(("Executed %s%s"):format(command, inspect(arguments, {newline=""})))
+        end
     else
         message.show(("Unknown command '%s'!"):format(command), true)
     end
@@ -65,6 +71,10 @@ commands.register("print", function(args)
 end, {"str"})
 
 commands.register("nop", function() end)
+
+commands.register("togglecommandmessages", function()
+    commands.messages = not commands.messages
+end)
 
 function commands.getFlag(command, flag)
     return commands.registry[command].flags[flag]

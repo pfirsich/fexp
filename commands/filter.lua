@@ -4,6 +4,7 @@ local inputcommands = require("inputcommands")
 local functional = require("util.functional")
 local globtopattern = require("libs.globtopattern").globtopattern
 local input = require("input")
+local message = require("message")
 local promptFunction = require("util.promptFunction")
 local memoize = require("util.memoize")
 
@@ -87,14 +88,14 @@ function filter.query(query)
                         table.insert(items, item)
                     end
                 else
-                    gui.message("Error executing query: " .. tostring(ret), true)
+                    message.show("Error executing query: " .. tostring(ret), true)
                     return
                 end
             end
             tab.items = items
             tab.itemCursor = 0
         else
-            gui.mesage("Query could not be compiled: " .. msg, true)
+            message.show("Query could not be compiled: " .. msg, true)
         end
     end
 end

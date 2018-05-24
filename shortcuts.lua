@@ -1,9 +1,12 @@
 local commands = require("commands")
 local functional = require("util.functional")
+local message = require("message")
 
 local shortcuts = {}
 
 shortcuts.map = {}
+
+shortcuts.messages = true
 
 function down(...)
     return love.keyboard.isDown(...)
@@ -19,11 +22,13 @@ end
 
 -- shortcut can be a table containing all the keys or a table of tables with a sequence of inputs
 function shortcuts.register(shortcut, command, arguments)
+    local shortcutRaw = shortcut
     if type(shortcut) == "string" then
         shortcut = {shortcut}
     end
     shortcut = functional.map(splitShortcut, shortcut)
     table.insert(shortcuts.map, {
+        shortcutRaw = shortcutRaw,
         shortcut = shortcut,
         command = command,
         arguments = arguments or {},
@@ -106,6 +111,13 @@ function shortcuts.keypressed(key, scancode, isRepeat)
         if #shortcut.shortcut == longestMatch then
             commands.exec(shortcut.command, shortcut.arguments)
         end
+    end
+
+    if shortcuts.messages and #matchingShortcuts > 0 then
+        message.show("Execute shortcut: " .. table.concat(functional.map(function(sc)
+            return ("%s -> %s%s"):format(inspect(sc.shortcutRaw), sc.command,
+                inspect(sc.arguments, {newline=""}))
+        end, matchingShortcuts)))
     end
 end
 

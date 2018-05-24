@@ -9,6 +9,15 @@ local drawgui = require("drawgui")
 local inputcommands = require("inputcommands")
 local input = require("input")
 
+function toggleVerbose()
+    local verbose = shortcuts.messages and commands.messages
+    verbose = not verbose
+    shortcuts.messages = verbose
+    commands.messages = verbose
+end
+commands.register("toggleverbose", toggleVerbose)
+inputcommands.register("Toggle Verbose Mode", "toggleverbose")
+
 function love.load()
     commands.loadCommands()
 
