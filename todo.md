@@ -5,7 +5,6 @@
 
 # Features
 * Copy/Paste
-* Floating tiny scroll bar (both tab item view and entries in input)
 * Implement a proper text input for the input/prompt
 
 # Maybe

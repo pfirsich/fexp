@@ -79,6 +79,7 @@ function love.load()
     shortcuts.register({"ctrl+s", "m"}, "sort", {by = "mod"})
     shortcuts.register({"ctrl+s", "s"}, "sort", {by = "size"})
     shortcuts.register({"ctrl+s", "t"}, "sort", {by = "type"})
+    shortcuts.register({"ctrl+s", "x"}, "sort", {by = "ext"})
 
     local home = os.getenv("HOME") or (os.getenv("HOMEDRIVE") .. os.getenv("HOMEPATH")) or lfs.currentdir()
     inputcommands.register("Bookmark: Home", "enumeratepath", {path = home})

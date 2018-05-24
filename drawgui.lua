@@ -29,6 +29,16 @@ local function sizeToString(bytes)
     end
 end
 
+function scrollIndicator(x, y, w, h, scrollBarH, scroll)
+    lg.setColor(1.0, 1.0, 1.0, 0.5)
+    local indicatorH = h * scrollBarH
+    if scrollBarH < 1 then
+        local indicatorW = 7
+        local indicatorOffset = scroll * (h - indicatorH)
+        lg.rectangle("fill", x + w - indicatorW, y + indicatorOffset, indicatorW, indicatorH)
+    end
+end
+
 function drawTabItems(tab, x, y, w, h)
     local font = lg.getFont()
     local fontHeight = font:getHeight()
@@ -87,6 +97,10 @@ function drawTabItems(tab, x, y, w, h)
         end
         elemY = elemY + lineHeight
     end
+
+    local maxScroll = #tab.items * lineHeight - h
+    scrollIndicator(x, y, w, h, h / (#tab.items * lineHeight), -tab._scrollOffset / maxScroll)
+
     lg.setScissor()
 end
 
@@ -203,7 +217,7 @@ function drawPane(pane, x, y, w, h)
                 end
 
                 if entry.annotation then
-                    local annotOffset = inputW - font:getWidth(entry.annotation) - 10
+                    local annotOffset = inputW - font:getWidth(entry.annotation) - 20
                     lg.setColor(0.7, 0.7, 0.7)
                     textRegion(entry.annotation, inputX, entryY, inputW, lineHeight, nil, annotOffset)
                 end
@@ -213,6 +227,10 @@ function drawPane(pane, x, y, w, h)
 
                 entryY = entryY + lineHeight
             end
+
+            scrollIndicator(inputX, inputY + lineHeight, inputW, entryH,
+                numEntries / #input.visibleEntries,
+                input._scrollOffset / (#input.visibleEntries - numEntries))
         end
     else
         assert(pane.splitType == "h" or pane.splitType == "v")
