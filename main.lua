@@ -139,3 +139,7 @@ function love.textinput(text)
     end
     triggerRepaint()
 end
+
+function love.resize()
+    triggerRepaint()
+end
