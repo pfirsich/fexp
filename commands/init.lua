@@ -8,8 +8,13 @@ commands.messages = true
 
 function commands.loadCommands()
     for _, file in ipairs(love.filesystem.getDirectoryItems("commands")) do
-        if file:sub(-4) == ".lua" and file ~= "init.lua" then
-            local name = file:sub(1, -5)
+        local name
+        if love.filesystem.getInfo("commands/" .. file, "directory") then
+            name = file
+        elseif file:sub(-4) == ".lua" and file ~= "init.lua" then
+            name = file:sub(1, -5)
+        end
+        if name then
             local mod = require("commands." .. name)
             assert(commands[name] == nil or commands[name] == mod)
             commands[name] = mod

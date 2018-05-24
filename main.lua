@@ -113,6 +113,9 @@ function love.load()
     shortcuts.register({"ctrl+s", "t"}, "sort", {by = "type"})
     shortcuts.register({"ctrl+s", "x"}, "sort", {by = "ext"})
 
+    shortcuts.register("ctrl+shift+s", "savesessionprompt")
+    shortcuts.register("ctrl+shift+o", "loadsession")
+
     local home = os.getenv("HOME") or (os.getenv("HOMEDRIVE") .. os.getenv("HOMEPATH")) or lfs.currentdir()
     inputcommands.register("Bookmark: Home", "enumeratepath", {path = home})
 
