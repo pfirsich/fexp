@@ -53,7 +53,7 @@ end
 function commands.wrap(func, argList)
     return function(args)
         local funcArgs = {}
-        for i, arg in ipairs(argList) do
+        for i, arg in ipairs(argList or {}) do
             funcArgs[i] = args[arg]
         end
         return func(unpack(funcArgs))

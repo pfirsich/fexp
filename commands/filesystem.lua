@@ -150,7 +150,7 @@ function filesystem.reloadTab(tab)
         end)
     end
 end
-commands.register("reloadtab", filesystem.reloadTab)
+commands.register("reloadtab", commands.wrap(filesystem.reloadTab))
 inputcommands.register("Reload Tab", "reloadtab")
 
 local function reloadPane(pane, recursive, allTabs)
@@ -161,7 +161,7 @@ local function reloadPane(pane, recursive, allTabs)
                 filesystem.reloadTab(tab)
             end
         else
-            filesystem.reloadTab(pane.tabs[pane.selectedTabIndex])
+            filesystem.reloadTab(pane:getSelectedTab())
         end
     elseif recursive then
         reloadPane(pane.children[1], recursive, allTabs)
@@ -199,7 +199,7 @@ end
 function filesystem.renameSelection(name)
     local tab = gui.getSelectedTab()
     if name:len() > 0 and tab and tab.path then
-        local selection = gui.getItemSelection()
+        local selection = gui.getSelection()
         if selection then
             if #selection > 1 then
                 message.show("Can't rename more than a single item.", true)
@@ -215,7 +215,7 @@ end
 commands.register("renameselection", commands.wrap(filesystem.renameSelection, {"name"}), {"name"})
 
 function filesystem.renameSelectionPrompt(text)
-    local selection = gui.getItemSelection()
+    local selection = gui.getSelection()
     if selection and #selection == 1 then
         if text == nil or text:len() == 0 then
             text = selection[1].arguments.name
@@ -275,7 +275,7 @@ function filesystem.remove(path, recursive)
 end
 
 function filesystem.deleteSelection(recursive)
-    local selection = gui.getItemSelection()
+    local selection = gui.getSelection()
     if selection then
         for _, item in ipairs(selection) do
             filesystem.remove(item.arguments.path, recursive)
@@ -315,7 +315,7 @@ commands.register("touchfile", commands.wrap(filesystem.touchFile, {"name"}), {"
 filesystem.touchPrompt = promptFunction("Touch File", "touchfile", "name")
 
 function filesystem.copySelection()
-    local selection = gui.getItemSelection()
+    local selection = gui.getSelection()
     if selection then
         clipboard.set("copyfiles", functional.map(function(item)
             return item.arguments.path
@@ -326,7 +326,7 @@ commands.register("copyselection", filesystem.copySelection)
 inputcommands.register("Copy Selection", "copyselection")
 
 function filesystem.cutSelection()
-    local selection = gui.getItemSelection()
+    local selection = gui.getSelection()
     if selection then
         clipboard.set("cutfiles", functional.map(function(item)
             return item.arguments.path
@@ -338,7 +338,6 @@ inputcommands.register("Cut Selection", "cutselection")
 
 -- https://gist.github.com/kaeza/bf76c9742f44905f513db9afb19bdac9
 function filesystem.copyFile(fromPath, toPath, blockSize)
-    print(fromPath, "->\n\t", toPath)
     blockSize = blockSize or 64*1024
 
     local sf, df, err

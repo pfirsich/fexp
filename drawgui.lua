@@ -120,8 +120,6 @@ function textRegion(text, x, y, w, h, padding, offsetX)
 end
 
 function drawPane(pane, x, y, w, h)
-    local font = lg.getFont()
-
     if pane.tabs then
         local paneSelected = pane == gui.selectedPane
 
@@ -170,7 +168,8 @@ function drawPane(pane, x, y, w, h)
         if numTabs == 0 then
             lg.setColor(1, 1, 1)
             local text = "No open tabs."
-            local tx, ty = x + w/2 - font:getWidth(text)/2, y + h/2 - font:getHeight()/2
+            local tx, ty = x + w/2 - fonts.regular:getWidth(text)/2, y + h/2 -
+                fonts.regular:getHeight()/2
             lg.print("No open tabs.", floor(tx), floor(ty))
         end
 
@@ -192,6 +191,11 @@ function drawPane(pane, x, y, w, h)
                 lg.rectangle("fill", inputX, inputY, inputW, inputH)
                 lg.setColor(1, 1, 1)
                 textRegion(input.text, inputX, inputY, inputW, lineHeight)
+                local inputTextW = fonts.regular:getWidth(input.text)
+                local inputTextH = fonts.regular:getHeight()
+                local cursorX = inputX + inputTextW + 5
+                local cursorY = inputY + lineHeight/2 - inputTextH/2
+                lg.line(cursorX, cursorY, cursorX, cursorY + inputTextH)
 
                 -- draw entries
                 local entryY = inputY + lineHeight
@@ -220,7 +224,7 @@ function drawPane(pane, x, y, w, h)
                     end
 
                     if entry.annotation then
-                        local annotOffset = inputW - font:getWidth(entry.annotation) - 20
+                        local annotOffset = inputW - fonts.regular:getWidth(entry.annotation) - 20
                         lg.setColor(0.7, 0.7, 0.7)
                         textRegion(entry.annotation, inputX, entryY, inputW, lineHeight, nil, annotOffset)
                     end

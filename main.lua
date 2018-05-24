@@ -9,8 +9,6 @@ local drawgui = require("drawgui")
 local inputcommands = require("inputcommands")
 local input = require("input")
 
-commands.register("quit", love.event.quit)
-
 function love.load()
     commands.loadCommands()
 
@@ -109,11 +107,13 @@ function love.load()
     local home = os.getenv("HOME") or (os.getenv("HOMEDRIVE") .. os.getenv("HOMEPATH")) or lfs.currentdir()
     inputcommands.register("Bookmark: Home", "enumeratepath", {path = home})
 
+    commands.register("quit", love.event.quit)
     inputcommands.register("Quit", "quit")
 
     inputcommands.finalize()
 
     love.keyboard.setKeyRepeat(true)
+    love.window.maximize()
 
     gui.init()
 end

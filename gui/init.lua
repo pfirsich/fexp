@@ -5,26 +5,12 @@ local message = require("message")
 
 local gui = {}
 
-gui.rootPane = {}
-gui.selectedPane = {}
+gui.Pane = require("gui.pane")
+gui.Tab = require("gui.tab")
 
 function gui.init()
-    gui.rootPane = {
-        parent = nil,
-        splitType = nil,
-        children = nil,
-        selectedTabIndex = 0,
-        tabs = {},
-    }
+    gui.rootPane = gui.Pane()
     gui.selectedPane = gui.rootPane
-end
-
-local function moveTab(fromPane, toPane, tabIndex)
-    table.insert(toPane.tabs, fromPane.tabs[tabIndex])
-    toPane.selectedTabIndex = #toPane.tabs
-
-    table.remove(fromPane.tabs, tabIndex)
-    fromPane.selectedTabIndex = math.max(1, math.min(#fromPane.tabs, tabIndex))
 end
 
 local function checkDir(dir)
@@ -35,95 +21,12 @@ local function checkDir(dir)
     return true
 end
 
-local function findPane(pane, root, path)
-    root = root or gui.rootPane
-    path = path or "/"
-
-    if pane == root then
-        return path
-    elseif root.tabs == nil then
-        if root.splitType == "h" then
-            local l = findPane(pane, root.children[1], path .. "l")
-            if l then return l end
-            local r = findPane(pane, root.children[2], path .. "r")
-            if r then return r end
-        else
-            local u = findPane(pane, root.children[1], path .. "u")
-            if u then return u end
-            local d = findPane(pane, root.children[2], path .. "d")
-            if d then return d end
-        end
-    end
-
-    return nil
-end
-
-local function strmul(s, n)
-    local ret = ""
-    for i = 1, n do
-        ret = ret .. s
-    end
-    return ret
-end
-
-local function printPaneGraph(pane, depth)
-    pane = pane or gui.rootPane
-    depth = depth or 0
-    print(strmul("    ", depth) .. findPane(pane), pane, pane.splitType)
-    if pane.children then
-        printPaneGraph(pane.children[1], depth + 1)
-        printPaneGraph(pane.children[2], depth + 1)
-    end
-end
-
 function gui.splitPane(dir, carryTab)
-    if dir == nil then
-        -- pick dir automatically
-        local parent = gui.selectedPane.parent
-        if parent == nil then
-            dir = "right"
-        else
-            local dirMap = {v = "right", h = "down"}
-            dir = dirMap[parent.splitType]
-        end
-    end
-
-    if not checkDir(dir) then
+    if dir and not checkDir(dir) then
         return
     end
 
-    local copyPane = { -- the old selected pane, copied and made a child of the selected pane
-        parent = gui.selectedPane,
-        tabs = gui.selectedPane.tabs,
-        selectedTabIndex = gui.selectedPane.selectedTabIndex,
-    }
-    local newPane = { -- a new empty pane
-        parent = gui.selectedPane,
-        tabs = {},
-        selectedTabIndex = 1,
-    }
-
-    if carryTab then
-        moveTab(copyPane, newPane, copyPane.selectedTabIndex)
-    end
-
-    if dir == "left" then
-        gui.selectedPane.children = {newPane, copyPane}
-        gui.selectedPane.splitType = "h"
-    elseif dir == "right" then
-        gui.selectedPane.children = {copyPane, newPane}
-        gui.selectedPane.splitType = "h"
-    elseif dir == "up" then
-        gui.selectedPane.children = {newPane, copyPane}
-        gui.selectedPane.splitType = "v"
-    elseif dir == "down" then
-        gui.selectedPane.children = {copyPane, newPane}
-        gui.selectedPane.splitType = "v"
-    end
-    gui.selectedPane.splitRatio = 0.5
-
-    -- the real old pane doesn't have tabs anymore, just children
-    gui.selectedPane.tabs = nil
+    local copyPane, newPane = gui.selectedPane:split(dir, carryTab)
     gui.selectedPane = newPane
 end
 commands.register("splitpane", commands.wrap(gui.splitPane, {"dir", "carryTab"}),
@@ -137,57 +40,16 @@ inputcommands.register("Split Pane Down (Carry Tab)", "splitpane", {dir = "down"
 inputcommands.register("Split Pane Left (Carry Tab)", "splitpane", {dir = "left", carryTab = true})
 inputcommands.register("Split Pane Right (Carry Tab)", "splitpane", {dir = "right", carryTab = true})
 
-local function getRelativePane(pane, dir, secondaryCall)
-    local parent = pane.parent
-    if parent == nil then
-        return nil
-    end
-
-    if dir == "left" and parent.splitType == "h" and parent.children[2] == pane then
-        pane = parent.children[1]
-    elseif dir == "right" and parent.splitType == "h" and parent.children[1] == pane then
-        pane = parent.children[2]
-    elseif dir == "up" and parent.splitType == "v" and parent.children[2] == pane then
-        pane = parent.children[1]
-    elseif dir == "down" and parent.splitType == "v" and parent.children[1] == pane then
-        pane = parent.children[2]
-    else
-        pane = getRelativePane(parent, dir, true)
-    end
-
-    -- only do this for the tail call, just before returning to the "outside" function
-    -- that called getRelativePane
-    if pane and not secondaryCall then
-        if pane.tabs == nil then -- pick an actual pane with tabs (a child)
-            -- we pick depending on where we came from
-            if pane.splitType == "h" then
-                if dir == "left" then -- coming from the right
-                    pane = pane.children[2]
-                else -- if coming from the left or from top/bottom (no correct choice possible)
-                    pane = pane.children[1]
-                end
-            else
-                if dir == "up" then -- coming from the bottom
-                    pane = pane.children[2]
-                else -- if coming from the top or from left/right (no correct choice possible)
-                    pane = pane.children[1]
-                end
-            end
-        end
-    end
-
-    return pane
-end
-
 function gui.movePane(dir, carryTab)
     if not checkDir(dir) then
         return
     end
 
-    local destPane = getRelativePane(gui.selectedPane, dir)
+    local destPane = gui.selectedPane:getRelativePane(dir)
     if destPane then
         if carryTab then
-            moveTab(gui.selectedPane, destPane, gui.selectedPane.selectedTabIndex)
+            gui.selectedPane:getSelectedTab():move(destPane)
+            destPane:selectTab(#destPane.tabs)
         end
 
         gui.selectedPane = destPane
@@ -204,49 +66,17 @@ inputcommands.register("Move Pane Down (Carry Tab)", "movepane", {dir = "down", 
 inputcommands.register("Move Pane Left (Carry Tab)", "movepane", {dir = "left", carryTab = true})
 inputcommands.register("Move Pane Right (Carry Tab)", "movepane", {dir = "right", carryTab = true})
 
-local function removePane(pane)
-    local parent = pane.parent
-    if parent then
-        local sibling = nil
-        if parent.children[2] == pane then
-            sibling = parent.children[1]
-        else
-            sibling = parent.children[2]
-        end
-
-        -- replace parent with sibling
-        if parent.parent then
-            if parent.parent.children[1] == parent then
-                parent.parent.children[1] = sibling
-            else
-                parent.parent.children[2] = sibling
-            end
-            sibling.parent = parent.parent
-        else
-            gui.rootPane = sibling
-            sibling.parent = nil
-        end
-    else
-        message.show("Cannot remove root pane!", true)
-    end
-end
-
-local function mergePaneInto(pane, destPane)
-    destPane.selectedTabIndex = pane.selectedTabIndex + #destPane.tabs
-    for _, tab in ipairs(pane.tabs) do
-        table.insert(destPane.tabs, tab)
-    end
-    removePane(pane)
-end
-
 function gui.mergePane(dir)
     if not checkDir(dir) then
         return
     end
 
-    local destPane = getRelativePane(gui.selectedPane, dir)
+    local destPane = gui.selectedPane:getRelativePane(dir)
     if destPane then
-        mergePaneInto(gui.selectedPane, destPane)
+        local replaceRoot = gui.selectedPane:mergeInto(destPane)
+        if replaceRoot then
+            gui.rootPane = destPane
+        end
         gui.selectedPane = destPane
     end
 end
@@ -265,46 +95,34 @@ function gui.resizePane(amount)
 end
 commands.register("resizepane", commands.wrap(gui.resizePane, {"amount"}), {"amount"})
 
+function gui.newTab(pane)
+    pane = pane or gui.selectedPane
+    local tab = gui.Tab(pane)
+    pane.selectedTabIndex = tab.index
+end
+commands.register("newtab", commands.wrap(gui.newTab, {}))
+inputcommands.register("New Tab", "newtab")
+
+function gui.closeTab(tabIndex, pane)
+    pane = pane or gui.selectedPane
+    tabIndex = tabIndex or pane.selectedTabIndex
+    if pane.tabs then
+        table.remove(pane.tabs, tabIndex)
+        pane:selectTabDelta(0)
+    else
+        message.show("Cannot close tabs for a pane that doesn't have tabs!", true)
+    end
+end
+commands.register("closetab", commands.wrap(gui.closeTab, {"tabIndex"}))
+inputcommands.register("Close Tab", "closetab")
+
 function gui.getSelectedTab()
     return gui.selectedPane.tabs[gui.selectedPane.selectedTabIndex]
 end
 
-local function foreachPane(func, pane)
-    pane = pane or gui.rootPane
-    func(pane)
-    if not pane.tabs then
-        foreachPane(func, pane.children[1])
-        foreachPane(func, pane.children[2])
-    end
-end
-
-local function indexOf(lst, needle)
-    for i, item in ipairs(lst) do
-        if item == needle then
-            return i
-        end
-    end
-    return nil
-end
-
-function gui.getPaneFromTab(tab)
-    local tabPane, tabIndex = nil, nil
-    foreachPane(function(pane)
-        local idx = pane.tabs and indexOf(pane.tabs, tab)
-        if idx then
-            print("Tab", tab.title, "is in", findPane(pane))
-            assert(not tabPane)
-            tabPane = pane
-            tabIndex = idx
-        end
-    end)
-    return tabPane, tabIndex
-end
-
 function gui.focusTab(tab)
-    local pane, index = gui.getPaneFromTab(tab)
-    gui.selectedPane = pane
-    pane.selectedTabIndex = index
+    gui.selectedPane = tab.pane
+    tab.pane.selectedTabIndex = tab.index
 end
 
 function gui.withFocusedTab(tab, func)
@@ -321,65 +139,28 @@ function gui.withFocusedTab(tab, func)
     end
 end
 
-function gui.newTab()
-    local pane = pane or gui.selectedPane
-    local tab = {
-        title = "",
-        path = nil,
-        items = {},
-        itemCursor = 0,
-        showModCol = true,
-        showSizeCol = true,
-    }
-    table.insert(pane.tabs, tab)
-    pane.selectedTabIndex = #pane.tabs
-end
-commands.register("newtab", gui.newTab)
-inputcommands.register("New Tab", "newtab")
-
-function gui.closeTab(tabIndex)
-    local pane = pane or gui.selectedPane
-    tabIndex = tabIndex or pane.selectedTabIndex
-    if pane.tabs then
-        table.remove(pane.tabs, tabIndex)
-        if pane.selectedTabIndex > #pane.tabs then
-            pane.selectedTabIndex = #pane.tabs
-        end
-    else
-        message.show("Cannot close tabs for a pane that doesn't have tabs!", true)
-    end
-end
-commands.register("closetab", commands.wrap(gui.closeTab, {"tabIndex"}))
-inputcommands.register("Close Tab", "closetab")
-
 function gui.selectTab(tabIndex, pane)
     pane = pane or gui.selectedPane
-    pane.selectedTabIndex = math.max(1, math.min(#pane.tabs, tabIndex))
+    pane:selectTab(tabIndex)
 end
-commands.register("selecttab", commands.wrap(gui.selectTab, {"tabIndex", "paneIndex"}), {"tabIndex"})
+commands.register("selecttab", commands.wrap(gui.selectTab, {"tabIndex"}), {"tabIndex"})
 
-function gui.nextTab()
-    local pane = pane or gui.selectedPane
-    pane.selectedTabIndex = pane.selectedTabIndex + 1
-    if pane.selectedTabIndex > #pane.tabs then
-        pane.selectedTabIndex = #pane.tabs
-    end
+function gui.nextTab(pane)
+    pane = pane or gui.selectedPane
+    pane:selectTabDelta(1)
 end
-commands.register("nexttab", gui.nextTab)
+commands.register("nexttab", commands.wrap(gui.nextTab))
 inputcommands.register("Next Tab", "nexttab")
 
-function gui.prevTab()
-    local pane = pane or gui.selectedPane
-    pane.selectedTabIndex = pane.selectedTabIndex - 1
-    if pane.selectedTabIndex < 1 then
-        pane.selectedTabIndex = 1
-    end
+function gui.prevTab(pane)
+    pane = pane or gui.selectedPane
+    pane:selectTabDelta(-1)
 end
-commands.register("prevtab", gui.prevTab)
+commands.register("prevtab", commands.wrap(gui.prevTab))
 inputcommands.register("Previous Tab", "prevtab")
 
-function gui.renameTab(newName)
-    local pane = gui.selectedPane
+function gui.renameTab(newName, pane)
+    pane = gui.selectedPane
     local tab = pane.tabs[pane.selectedTabIndex]
     if tab then
         tab.title = newName
@@ -425,8 +206,7 @@ function gui.moveItemCursor(delta, selectItems)
         if selectItems then
             tab.items[tab.itemCursor].selected = setSelect
         end
-        tab.itemCursor = tab.itemCursor + delta
-        tab.itemCursor = math.max(1, math.min(#tab.items, tab.itemCursor))
+        tab:moveItemCursor(delta)
         if selectItems then
             tab.items[tab.itemCursor].selected = setSelect
         end
@@ -441,8 +221,7 @@ function gui.seekItemCursor(pos, selectItems)
             pos = #tab.items + pos + 1
         end
         local startRange = tab.itemCursor
-        tab.itemCursor = pos
-        tab.itemCursor = math.max(1, math.min(#tab.items, tab.itemCursor))
+        tab:setItemCursor(pos)
         if selectItems then
             local endRange = tab.itemCursor
             if endRange < startRange then
@@ -475,7 +254,7 @@ commands.register("gotoitemprompt", commands.wrap(gui.gotoItemPrompt, {"text"}))
 function gui.toggleItemSelection()
     local tab = gui.getSelectedTab()
     if tab then
-        local item = tab.items[tab.itemCursor]
+        local item = tab:getCursorItem()
         item.selected = not item.selected
     end
 end
@@ -486,7 +265,7 @@ function gui.toggleItemSelectAll()
     if tab then
         local selected = 0
         for _, item in ipairs(tab.items) do
-            if item.selected then
+            if item.caption ~= ".." and item.selected then
                 selected = selected + 1
             end
         end
@@ -503,36 +282,17 @@ commands.register("toggleitemselectall", gui.toggleItemSelectAll)
 
 function gui.getSelectedItems()
     local tab = gui.getSelectedTab()
-    if tab then
-        local ret = {}
-        for _, item in ipairs(tab.items) do
-            if item.selected then
-                table.insert(ret, item)
-            end
-        end
-        return ret
-    end
-    return nil
+    return tab and tab:getSelectedItems()
 end
 
-function gui.getItemSelection()
+function gui.getSelection()
     local tab = gui.getSelectedTab()
-    if tab then
-        if not tab.items[tab.itemCursor].selected then
-            for _, item in ipairs(tab.items) do
-                item.selected = false
-            end
-            tab.items[tab.itemCursor].selected = true
-        end
-        return gui.getSelectedItems()
-    end
-    return nil
+    return tab and tab:getSelection()
 end
 
 function gui.execItems(newTab, newPane)
-    local selection = gui.getItemSelection()
+    local selection = gui.getSelection()
     if selection then
-        local exec = false
         if #selection == 1 then
             if newPane then
                 gui.splitPane()
@@ -543,20 +303,14 @@ function gui.execItems(newTab, newPane)
                 gui.newTab()
             end
 
-            exec = true
+            commands.exec(selection[1].command, selection[1].arguments)
         else
-            local onlyFile = true
             for _, item in ipairs(selection) do
                 if item.columns.type ~= "file" then
-                    onlyFile = false
-                    break
+                    return
                 end
             end
 
-            exec = onlyFile
-        end
-
-        if exec then
             for _, item in ipairs(selection) do
                 commands.exec(item.command, item.arguments)
             end
