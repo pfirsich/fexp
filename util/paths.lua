@@ -1,3 +1,5 @@
+local lfs = require("lfs")
+
 local paths = {}
 
 -- all of this is very heavily inspired by Python's os.path library.
@@ -31,8 +33,7 @@ local function strip(str, pat)
 end
 
 function paths.abspath(path)
-    -- Python does: normpath(join(os.getcwd(), path))
-    error("Unimplemented")
+    return paths.normpath(paths.join(lfs.currentdir(), path))
 end
 
 function paths.split(path)
@@ -64,7 +65,13 @@ function paths.join(...)
     local n = select("#", ...)
     for i = 1, n do
         local path = select(i, ...)
-        path = strip(path, paths.allsep)
+        if i == 1 then
+            path = rstrip(path, paths.allsep)
+        elseif i == n then
+            path = lstrip(path, paths.allsep)
+        else
+            path = strip(path, paths.allsep)
+        end
         table.insert(parts, path)
     end
     return table.concat(parts, paths.sep)
@@ -80,21 +87,28 @@ function paths.normpath(path)
         table.insert(parts, part)
     end
 
-    local i = 1
+    local prefix = ""
+    if path:sub(1,1) == paths.sep then
+        prefix = paths.sep
+    end
+
+    local i = 2
     while i <= #parts do
         if parts[i]:len() == 0 or parts[i] == "." then
             table.remove(parts, i)
         elseif parts[i] == ".." then
-            -- this goes wrong if i == 1, but then the input was garbage
-            i = i - 1
-            table.remove(parts, i)
-            table.remove(parts, i)
+            if i > 1 and parts[i-1] ~= ".." then
+                i = i - 1
+                table.remove(parts, i)
+                table.remove(parts, i)
+            end
         else
             i = i + 1
         end
     end
 
-    return table.concat(parts, paths.sep)
+    local normpath = prefix .. table.concat(parts, paths.sep)
+    return normpath
 end
 
 function paths.relpath(path, start)
