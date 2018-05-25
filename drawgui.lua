@@ -190,12 +190,9 @@ function drawPane(pane, x, y, w, h)
                 lg.setColor(0.3, 0.3, 0.3)
                 lg.rectangle("fill", inputX, inputY, inputW, inputH)
                 lg.setColor(1, 1, 1)
-                textRegion(input.text, inputX, inputY, inputW, lineHeight)
-                local inputTextW = fonts.regular:getWidth(input.text)
-                local inputTextH = fonts.regular:getHeight()
-                local cursorX = inputX + inputTextW + 5
-                local cursorY = inputY + lineHeight/2 - inputTextH/2
-                lg.line(cursorX, cursorY, cursorX, cursorY + inputTextH)
+                input.textLine:setFont(fonts.regular)
+                input.textLine:setArea(inputX + 5, inputY + 5, inputW - 10, lineHeight - 10)
+                input.textLine:draw({0.5, 0.5, 0.5}, true)
 
                 -- draw entries
                 local entryY = inputY + lineHeight

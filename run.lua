@@ -34,14 +34,14 @@ function love.run()
         if love.update then love.update(dt) end -- will pass 0 if love.timer is disabled
 
         if love.graphics and love.graphics.isActive() and repaint then
+            repaint = false
+
             love.graphics.origin()
             love.graphics.clear(love.graphics.getBackgroundColor())
 
             if love.draw then love.draw() end
 
             love.graphics.present()
-
-            repaint = false
         end
 
         if love.timer then love.timer.sleep(0.001) end

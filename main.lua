@@ -130,6 +130,12 @@ function love.load()
     gui.init()
 end
 
+function love.update()
+    if input.isActive() then
+        input.update()
+    end
+end
+
 function love.draw()
     drawgui.draw()
 end

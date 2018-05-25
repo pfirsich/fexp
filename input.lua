@@ -1,5 +1,7 @@
 local utf8 = require("utf8")
 
+local TextLine = require("libs.textline")
+
 local commands = require("commands")
 local sort = require("util.sort")
 local functional = require("util.functional")
@@ -8,13 +10,8 @@ local input = {}
 
 input.entries = nil
 
-local function len_utf8(text)
-    return utf8.len(text)
-end
-
-local function sub_utf8(text, from, to)
-    return text:sub(utf8.offset(text, from), to and utf8.offset(text, to+1)-1 or text:len())
-end
+-- these constructor values are all bogus and overwritten in drawgui.lua when drawing
+input.textLine = TextLine(love.graphics.getFont(), 0, 0, 200, 20)
 
 function input.isActive()
     return input.entries ~= nil
@@ -131,14 +128,17 @@ local function makeColoredText(matchParts)
 end
 
 local function updateInputEntryVisibility()
+    if not input.entries then return end
+
     if input.promptArg then
         input.entries[1].visible = true
         input.entries[1].coloredText = makeColoredText({true, input.entries[1].caption})
         input.selectedEntry = 1
     else
-        if input.text:len() > 0 then
+        local text = input.textLine:getText()
+        if text:len() > 0 then
             for _, entry in ipairs(input.entries) do
-                entry.matchScore, entry.matchingIndices = matchScore(entry.caption, input.text)
+                entry.matchScore, entry.matchingIndices = matchScore(entry.caption, text)
                 entry.visible = entry.matchScore and entry.matchScore >= 0
                 if entry.matchScore then
                     entry.coloredText = makeColoredText(entry.matchingIndices)
@@ -165,7 +165,7 @@ end
 -- the command will receive an additional argument with the input and the name is 'promptArg'
 function input.toggle(entries, text, promptArg)
     input.entries = entries
-    input.text = text or ""
+    input.textLine:setText(text or "", true)
     input.selectedEntry = 1
     input.promptArg = promptArg
     if input.promptArg then
@@ -204,7 +204,7 @@ function input.keypressed(key)
         local entry = input.visibleEntries[input.selectedEntry]
         assert(entry)
         if input.promptArg then
-            entry.arguments[input.promptArg] = input.text
+            entry.arguments[input.promptArg] = input.textLine:getText()
         end
 
         input.toggled = false
@@ -213,18 +213,24 @@ function input.keypressed(key)
             input.entries = nil
         end
     end
-    if key == "backspace" then
-        input.text = sub_utf8(input.text, 1, len_utf8(input.text) - 1)
-        updateInputEntryVisibility()
-    end
     if key == "escape" then
         input.entries = nil
+    end
+
+    if input.textLine:keyPressed(key) then
+        updateInputEntryVisibility()
     end
 end
 
 function input.textinput(text)
-    input.text = input.text .. text
+    input.textLine:textInput(text)
     updateInputEntryVisibility()
+end
+
+function input.update()
+    if input.textLine:update() then
+        triggerRepaint()
+    end
 end
 
 return input
