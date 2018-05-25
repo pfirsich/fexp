@@ -159,6 +159,28 @@ end
 commands.register("prevtab", commands.wrap(gui.prevTab))
 inputcommands.register("Previous Tab", "prevtab")
 
+function gui.toggleTabInput(text)
+    local pane = gui.selectedPane
+    if pane then
+        local entries = {}
+        for i, tab in ipairs(pane.tabs) do
+            local title = tab.title
+            if title:len() == 0 then
+                title = tab.path and paths.basename(tab.path) or "unnamed tab"
+            end
+            title = title .. (" (%d)"):format(i)
+            table.insert(entries, {
+                caption = title,
+                command = "selecttab",
+                arguments = {tabIndex = i},
+            })
+        end
+        input.toggle(entries, text)
+    end
+end
+commands.register("toggletabinput", commands.wrap(gui.toggleTabInput, {"text"}))
+inputcommands.register("Toggle Tab Input", "toggletabinput")
+
 function gui.renameTab(newName, pane)
     pane = gui.selectedPane
     local tab = pane.tabs[pane.selectedTabIndex]

@@ -6,7 +6,6 @@
 * Introduce some unified "item" class.
 * A nice feedback/progress screen for deletion/paste (maybe make a "mock-directory" in which each item is one copy operation with progress, eta in brackets, deleting the items aborts them) - `path`, `showModCol`, `showSizeCol` do not fit this. Columns and item data should be generalized.
 * Make reload not sort by name/type, but the last used sorting for that directory
-* Fuzzy match tabs (like goto file in Sublime Text)
 
 # Non-Prototype stuff
 * Query Filter

@@ -83,6 +83,7 @@ function love.load()
 
     shortcuts.register("tab", "gotoitemprompt")
     shortcuts.register("ctrl+space", "togglecommandinput")
+    shortcuts.register("alt+space", "toggletabinput")
 
     shortcuts.register("up", "moveitemcursor", {delta = -1})
     shortcuts.register("down", "moveitemcursor", {delta = 1})
