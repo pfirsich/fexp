@@ -19,9 +19,9 @@ function filter.glob(glob)
     local tab = gui.getSelectedTab()
     if tab then
         tab.items = functional.filterl(function(item)
-            return item.caption:match(pat)
+            return item.columns[tab.gotoItemColumn]:match(pat)
         end, tab.items)
-        tab.itemCursor = 0
+        tab.itemCursor = 1
     end
 end
 commands.register("filterglob", commands.wrap(filter.glob, {"glob"}), {"glob"})
@@ -33,7 +33,7 @@ function filter.selected()
         tab.items = functional.filterl(function(item)
             return item.selected
         end, tab.items)
-        tab.itemCursor = 0
+        tab.itemCursor = 1
     end
 end
 commands.register("filterselected", filter.selected)
@@ -56,10 +56,8 @@ local function parseTime(str)
     error("Not yet implemented!")
 end
 
-local function globber(str)
-    return function(glob)
-        return str:match(globtopattern(glob))
-    end
+local function glob(str, glob)
+    return str:match(globtopattern(glob))
 end
 
 function filter.query(query)
@@ -70,17 +68,26 @@ function filter.query(query)
         if f then
             local items = {}
             for _, item in ipairs(tab.items) do
-                setfenv(f, {
-                    type = item.columns.type,
-                    mod = item.columns.mod,
-                    size = item.columns.size,
-                    name = item.arguments.name,
-                    path = item.arguments.path,
+                local env = {
                     selected = item.selected,
-                    s = parseSize,
-                    t = parseTime,
-                    glob = globber(item.caption),
-                })
+                }
+                for col, val in pairs(item.columns) do
+                    env[col] = val
+                end
+                for arg, val in pairs(item.arguments) do
+                    env[arg] = val
+                end
+
+                -- helper functions
+                env.glob = glob
+                env.time = parseTime
+                for prefix, factor in pairs(factorMap) do
+                    local f = function(num) return num * factorMap[prefix] end
+                    env[prefix .. "B"] = f
+                    env[prefix:lower() .. "b"] = f
+                end
+
+                setfenv(f, env)
 
                 local status, ret = pcall(f)
                 if status then
@@ -93,7 +100,7 @@ function filter.query(query)
                 end
             end
             tab.items = items
-            tab.itemCursor = 0
+            tab.itemCursor = 1
         else
             message.show("Query could not be compiled: " .. msg, true)
         end

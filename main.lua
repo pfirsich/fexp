@@ -78,8 +78,16 @@ function love.load()
     shortcuts.register("ctrl+v", "pasteclipboard")
 
     -- use h j k l for columns (obviously from left to right)
-    shortcuts.register("ctrl+h", "togglemodcol")
-    shortcuts.register("ctrl+j", "togglesizecol")
+    shortcuts.register({"ctrl+l", "1"}, "togglecolumn", {column = 1})
+    shortcuts.register({"ctrl+l", "2"}, "togglecolumn", {column = 2})
+    shortcuts.register({"ctrl+l", "3"}, "togglecolumn", {column = 3})
+    shortcuts.register({"ctrl+l", "4"}, "togglecolumn", {column = 4})
+    shortcuts.register({"ctrl+l", "5"}, "togglecolumn", {column = 5})
+    shortcuts.register({"ctrl+l", "6"}, "togglecolumn", {column = 6})
+    shortcuts.register({"ctrl+l", "7"}, "togglecolumn", {column = 7})
+    shortcuts.register({"ctrl+l", "8"}, "togglecolumn", {column = 8})
+    shortcuts.register({"ctrl+l", "9"}, "togglecolumn", {column = 9})
+    shortcuts.register({"ctrl+l", "0"}, "togglecolumn", {column = 0})
 
     shortcuts.register("tab", "gotoitemprompt")
     shortcuts.register("ctrl+space", "togglecommandinput")
@@ -112,7 +120,6 @@ function love.load()
     shortcuts.register({"ctrl+s", "m"}, "sort", {by = "mod"})
     shortcuts.register({"ctrl+s", "s"}, "sort", {by = "size"})
     shortcuts.register({"ctrl+s", "t"}, "sort", {by = "type"})
-    shortcuts.register({"ctrl+s", "x"}, "sort", {by = "ext"})
 
     shortcuts.register("ctrl+shift+s", "savesessionprompt")
     shortcuts.register("ctrl+shift+o", "loadsession")
@@ -131,10 +138,19 @@ function love.load()
     gui.init()
 end
 
-function love.update()
+function love.update(dt)
     if input.isActive() then
         input.update()
     end
+
+    gui.foreachPane(function(pane)
+        if pane.tabs then
+            local tab = pane:getSelectedTab()
+            if tab and tab.update then
+                tab:update(dt)
+            end
+        end
+    end)
 end
 
 function love.draw()

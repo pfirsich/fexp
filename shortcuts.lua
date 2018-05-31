@@ -8,7 +8,7 @@ local shortcuts = {}
 
 shortcuts.map = {}
 
-shortcuts.messages = true
+shortcuts.messages = false
 
 function down(...)
     return love.keyboard.isDown(...)

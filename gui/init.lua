@@ -95,6 +95,15 @@ function gui.resizePane(amount)
 end
 commands.register("resizepane", commands.wrap(gui.resizePane, {"amount"}), {"amount"})
 
+function gui.foreachPane(func, pane)
+    pane = pane or gui.rootPane
+    func(pane)
+    if pane.children then
+        func(pane.children[1])
+        func(pane.children[2])
+    end
+end
+
 function gui.newTab(pane)
     pane = pane or gui.selectedPane
     local tab = gui.Tab(pane)
@@ -118,6 +127,11 @@ inputcommands.register("Close Tab", "closetab")
 
 function gui.getSelectedTab()
     return gui.selectedPane.tabs[gui.selectedPane.selectedTabIndex]
+end
+
+function gui.selectedTabHasColumns(columns)
+    local tab = gui.getSelectedTab()
+    return tab and tab.columns == columns
 end
 
 function gui.focusTab(tab)
@@ -203,23 +217,35 @@ end
 commands.register("renametabprompt", gui.renameTabPrompt)
 inputcommands.register("Rename Tab", "renametabprompt")
 
-function gui.toggleModCol()
+function gui.toggleColumn(column)
     local tab = gui.getSelectedTab()
-    if tab then
-        tab.showModCol = not tab.showModCol
+    if tab and tab.columns then
+        if type(column) == "string" then
+            column = tab:getColumnByKey(column)
+        end
+        if column and tab.columns[column] then
+            tab.columns[column].enabled = not tab.columns[column].enabled
+        end
     end
 end
-commands.register("togglemodcol", gui.toggleModCol)
-inputcommands.register("Toggle Modification Time Column", "togglemodcol")
+commands.register("togglecolumn", commands.wrap(gui.toggleColumn, {"column"}), {"column"})
 
-function gui.toggleSizeCol()
+function gui.toggleColumnPrompt(text)
     local tab = gui.getSelectedTab()
-    if tab then
-        tab.showSizeCol = not tab.showSizeCol
+    if tab and tab.columns then
+        local entries = {}
+        for i, column in ipairs(tab.columns) do
+            table.insert(entries, {
+                caption = column.key,
+                command = "togglecolumn",
+                arguments = {column = i},
+            })
+        end
+        input.toggle(entries, text)
     end
 end
-commands.register("togglesizecol", gui.toggleSizeCol)
-inputcommands.register("Toggle Size Column", "togglesizecol")
+commands.register("togglecolumnprompt", commands.wrap(gui.toggleColumnPrompt, {"text"}))
+inputcommands.register("Toggle Column", "togglecolumnprompt")
 
 function gui.moveItemCursor(delta, selectItems)
     local tab = gui.getSelectedTab()
@@ -263,7 +289,7 @@ function gui.gotoItemPrompt(text)
         local entries = {}
         for i, item in ipairs(tab.items) do
             table.insert(entries, {
-                caption = item.caption,
+                caption = item.columns[tab.columns.gotoItemColumn],
                 command = "seekitemcursor",
                 arguments = {pos = i},
             })
@@ -285,16 +311,18 @@ commands.register("toggleitemselection", gui.toggleItemSelection)
 function gui.toggleItemSelectAll()
     local tab = gui.getSelectedTab()
     if tab then
-        local selected = 0
+        local selectAll = false
         for _, item in ipairs(tab.items) do
-            if item.caption ~= ".." and item.selected then
-                selected = selected + 1
+            if not item.dontSelectAll and not item.selected then
+                selectAll = true
+                break
             end
         end
 
-        local selectAll = selected < #tab.items - 1
         for _, item in ipairs(tab.items) do
-            if item.caption ~= ".." then
+            if item.dontSelectAll then
+                item.selected = false
+            else
                 item.selected = selectAll
             end
         end

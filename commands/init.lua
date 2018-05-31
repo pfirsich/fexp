@@ -6,7 +6,7 @@ local commands = {}
 
 commands.registry = {}
 
-commands.messages = true
+commands.messages = false
 
 function commands.loadCommands()
     for _, file in ipairs(love.filesystem.getDirectoryItems("commands")) do

@@ -3,60 +3,67 @@ local inputcommands = require("inputcommands")
 local insertionSort = require("util.sort")
 local gui = require("gui")
 local message = require("message")
-local paths = require("util.paths")
+local input = require("input")
 
 local sort = {}
 
-local cmpFuncs = {}
-
-local typeMap = {
-    ["directory"] = 1,
-    ["file"] = 2,
-    ["link"] = 3,
-    ["socket"] = 4,
-    ["named pipe"] = 5,
-    ["char device"] = 6,
-    ["block device"] = 7,
-    ["other"] = 8,
-    ["n/a"] = 9,
-}
-function cmpFuncs.type(a, b)
-    return typeMap[a.columns.type] < typeMap[b.columns.type]
-end
-
-function cmpFuncs.name(a, b)
-    return a.caption:lower() < b.caption:lower()
-end
-
-function cmpFuncs.size(a, b)
-    return a.columns.size < b.columns.size
-end
-
-function cmpFuncs.mod(a, b)
-    return a.columns.mod < b.columns.mod
-end
-
-function cmpFuncs.ext(a, b)
-    return select(2, paths.splitext(a.arguments.name:lower())) <
-        select(2, paths.splitext(b.arguments.name:lower()))
+function cmpKey(key, cmpFunc)
+    if cmpFunc then
+        return function(a, b)
+            return cmpFunc(a.columns[key], b.columns[key])
+        end
+    else
+        return function(a, b)
+            local va, vb = a.columns[key], b.columns[key]
+            assert(type(va) == type(vb))
+            if type(va) == "number" or type(va) == "boolean" then
+                return va < vb
+            elseif type(va) == "string" then
+                return va:lower() < vb:lower()
+            else
+                error("Cannot sort " .. type(va))
+            end
+        end
+    end
 end
 
 function sort.sort(by)
-    if by ~= "type" and by ~= "name" and by ~= "size" and by ~= "mod" and by ~= "ext" then
-        message.show(("Unknown sort type '%s'"):format(by), true)
-        return
-    end
-
     local tab = gui.getSelectedTab()
     if tab then
-        insertionSort(tab.items, cmpFuncs[by])
+        assert(tab.columns)
+        local column = nil
+        if type(by) == "integer" then
+            column = tab.columns[by]
+        elseif type(by) == "string" then
+            column = tab:getColumnByKey(by)
+            if not column then
+                message.show(("Column '%s' is not present in this tab"):format(by))
+                return
+            end
+        else
+            message.show(("Unknown type for sort key '%s' (%s)"):format(type(by), tostring(by)), true)
+            return
+        end
+        insertionSort(tab.items, cmpKey(column.key, column.cmp))
     end
 end
 commands.register("sort", commands.wrap(sort.sort, {"by"}), {"by"})
-inputcommands.register("Sort by Type", "sort", {by = "type"})
-inputcommands.register("Sort by Name", "sort", {by = "name"})
-inputcommands.register("Sort by Size", "sort", {by = "size"})
-inputcommands.register("Sort by Extension", "sort", {by = "ext"})
-inputcommands.register("Sort by Modification Time", "sort", {by = "mod"})
+
+function sort.sortPrompt()
+    local tab = gui.getSelectedTab()
+    if tab and tab.columns then
+        local entries = {}
+        for i, column in ipairs(tab.columns) do
+            table.insert(entries, {
+                caption = column.key,
+                command = "sort",
+                arguments = {by = column.key},
+            })
+        end
+        input.toggle(entries, text)
+    end
+end
+commands.register("sortprompt", sort.sortPrompt)
+inputcommands.register("Sort", "sortprompt")
 
 return sort

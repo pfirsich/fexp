@@ -39,14 +39,22 @@ local function tableExtend(tbl, with)
     end
 end
 
-local function getDirItem(path, file, caption)
+local function getDirItem(path, file, caption, dontSelectAll)
     local filePath = paths.join(path, file)
     local attr = lfs.attributes(filePath)
 
     local item = {
-        caption = escapeNonAscii(caption or file),
-        columns = {type = "n/a", mod = 0, size = 0},
-        arguments = {name = file, path = filePath},
+        columns = {
+            caption = escapeNonAscii(caption or file),
+            type = "n/a", 
+            mod = 0, 
+            size = 0,
+        },
+        arguments = {
+            name = file, 
+            path = filePath
+        },
+        dontSelectAll = dontSelectAll,
     }
 
     if attr then
@@ -103,6 +111,79 @@ local function getDirItems(path, recursive)
     return items
 end
 
+local function timeToString(timestamp)
+    return os.date('%d.%m.%Y %H:%M:%S', timestamp)
+end
+
+local function sizeToString(bytes)
+    if bytes < 1024 then -- < 1KB
+        return ("%d B"):format(bytes)
+    elseif bytes < 1024*1024 then -- < 1MB
+        return ("%.3f KB"):format(bytes/1024)
+    elseif bytes < 1024*1024*1024 then -- < 1 GB
+        return ("%.3f MB"):format(bytes/1024/1024)
+    elseif bytes < 1024*1024*1024*1024 then -- < 1 TB
+        return ("%.3f GB"):format(bytes/1024/1024/1024)
+    else
+        return ("%.3f TB"):format(bytes/1024/1024/1024/1024)
+    end
+end
+
+local typeMap = {
+    ["directory"] = 1,
+    ["file"] = 2,
+    ["link"] = 3,
+    ["socket"] = 4,
+    ["named pipe"] = 5,
+    ["char device"] = 6,
+    ["block device"] = 7,
+    ["other"] = 8,
+    ["n/a"] = 9,
+}
+
+local dirItemsColumns = {
+    {
+        key = "type",
+        enabled = false,
+        cmp = function(a, b) return typeMap[a] < typeMap[b] end,
+    },
+    {
+        key = "mod",
+        width = "00.00.0000 00:00:00",
+        tostr = timeToString,
+        enabled = true,
+    },
+    {
+        key = "size",
+        width = "000.000 XB",
+        tostr = sizeToString,
+        enabled = true,
+        justify = "right",
+    },
+    {
+        key = "caption",
+        enabled = true,
+        font = function(item)
+            if item.columns.type == "directory" then
+                return "bold"
+            elseif item.columns.type ~= "file" then 
+                return "italic"
+            end
+        end,
+        color = function(item)
+            if item.columns.type == "directory" then 
+                return {0.8, 0.8, 1.0}
+            end
+        end,
+    },
+    gotoItemColumn = "caption",
+}
+
+inputcommands.register("Sort by Type", "sort", {by = "type"})
+inputcommands.register("Sort by Name", "sort", {by = "name"})
+inputcommands.register("Sort by Size", "sort", {by = "size"})
+inputcommands.register("Sort by Modification Time", "sort", {by = "mod"})
+
 function filesystem.enumeratePath(path, recursive)
     if recursive == nil then
         recursive = commands.getFlag("enumeratepath", "recursive")
@@ -117,9 +198,11 @@ function filesystem.enumeratePath(path, recursive)
     tab.path = path
     tab.items = getDirItems(path, recursive)
     if tab.items then
+        tab.columns = dirItemsColumns
+
         local dotdotPath = paths.normpath(paths.join(path, ".."))
         local dotdotCaption = (".. (%s)"):format(dotdotPath)
-        table.insert(tab.items, 1, getDirItem(path, "..", dotdotCaption))
+        table.insert(tab.items, 1, getDirItem(path, "..", dotdotCaption, true))
         tab.itemCursor = 1
 
         -- because the sort is stable items with the same type will still be sorted by name
@@ -216,7 +299,7 @@ commands.register("renameselection", commands.wrap(filesystem.renameSelection, {
 
 function filesystem.renameSelectionPrompt(text)
     local selection = gui.getSelection()
-    if selection and #selection == 1 then
+    if gui.selectedTabHasColumns(dirItemsColumns) and selection and #selection == 1 then
         if text == nil or text:len() == 0 then
             text = selection[1].arguments.name
         end
@@ -276,7 +359,7 @@ end
 
 function filesystem.deleteSelection(recursive)
     local selection = gui.getSelection()
-    if selection then
+    if gui.selectedTabHasColumns(dirItemsColumns) and selection then
         for _, item in ipairs(selection) do
             filesystem.remove(item.arguments.path, recursive)
         end
@@ -316,7 +399,7 @@ filesystem.touchPrompt = promptFunction("Touch File", "touchfile", "name")
 
 function filesystem.copySelection()
     local selection = gui.getSelection()
-    if selection then
+    if gui.selectedTabHasColumns(dirItemsColumns) and selection then
         clipboard.set("copyfiles", functional.map(function(item)
             return item.arguments.path
         end, selection))
@@ -327,7 +410,7 @@ inputcommands.register("Copy Selection", "copyselection")
 
 function filesystem.cutSelection()
     local selection = gui.getSelection()
-    if selection then
+    if gui.selectedTabHasColumns(dirItemsColumns) and selection then
         clipboard.set("cutfiles", functional.map(function(item)
             return item.arguments.path
         end, selection))

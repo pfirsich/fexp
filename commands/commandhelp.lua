@@ -8,6 +8,21 @@ local message = require("message")
 
 local commandhelp = {}
 
+local commandHelpItemColumns = {
+    {
+        key = "command",
+        font = "bold",
+        color = {0.8, 0.8, 1.0},
+        enabled = true,
+    },
+    {
+        key = "help",
+        font = "italic",
+        enabled = true,
+    },
+    gotoItemColumn = "command",
+}
+
 function commandhelp.show()
     gui.newTab()
     local tab = gui.getSelectedTab()
@@ -21,23 +36,21 @@ function commandhelp.show()
             table.insert(args, arg .. " = " .. inspect(val, {newline="", indent=""}))
         end
         local cap = ("%s(%s)"):format(name, table.concat(args, ", "))
-        if command.help then
-            cap = cap .. "   -   " .. command.help
-        end
 
         table.insert(tab.items, {
-            caption = cap,
-            columns = {type = "directory", mod = 0, size = 0},
+            columns = {
+                command = cap,
+                help = command.help,
+            },
             command = "nop",
             arguments = {},
         })
     end
+    tab.columns = commandHelpItemColumns
     tab.title = "Command Help"
     tab.itemCursor = 1
-    tab.showModCol = false
-    tab.showSizeCol = false
 
-    commands.sort.sort("name")
+    commands.sort.sort("command")
 end
 commands.register("commandhelp", commandhelp.show)
 inputcommands.register("Show Command Help", "commandhelp")

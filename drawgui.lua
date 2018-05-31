@@ -4,6 +4,7 @@ local functional = require("util.functional")
 local paths = require("util.paths")
 local message = require("message")
 local clipboard = require("clipboard")
+local memoize = require("util.memoize")
 
 local lg = love.graphics
 local floor = math.floor
@@ -14,21 +15,12 @@ local fonts = {
     italic = love.graphics.newFont("fonts/RobotoMono-Italic.ttf", 14),
 }
 
-local drawgui = {}
-
-local function sizeToString(bytes)
-    if bytes < 1024 then -- < 1KB
-        return ("%d B"):format(bytes)
-    elseif bytes < 1024*1024 then -- < 1MB
-        return ("%.3f KB"):format(bytes/1024)
-    elseif bytes < 1024*1024*1024 then -- < 1 GB
-        return ("%.3f MB"):format(bytes/1024/1024)
-    elseif bytes < 1024*1024*1024*1024 then -- < 1 TB
-        return ("%.3f GB"):format(bytes/1024/1024/1024)
-    else
-        return ("%.3f TB"):format(bytes/1024/1024/1024/1024)
-    end
+local fontWidth = {}
+for name, font in pairs(fonts) do
+    fontWidth[name] = memoize(function(text) return fonts[name]:getWidth(text) end)
 end
+
+local drawgui = {}
 
 function scrollIndicator(x, y, w, h, scrollBarH, scroll)
     lg.setColor(1.0, 1.0, 1.0, 0.5)
@@ -40,12 +32,31 @@ function scrollIndicator(x, y, w, h, scrollBarH, scroll)
     end
 end
 
-function drawTabItems(tab, x, y, w, h)
+local function getColumnProperty(column, item, property)
+    local prop = column[property]
+    if prop and type(prop) == "function" then
+        return prop(item)
+    end
+    return prop
+end
+
+local function getColumnString(column, item)
+    local col = item.columns[column.key]
+    if col == nil then
+        return ""
+    end
+    if column.tostr then
+        return column.tostr(col)
+    end
+    return tostring(col)
+end
+
+local function drawTabItems(tab, x, y, w, h)
+    if #tab.items == 0 then return end
+    assert(tab.columns)
     local font = lg.getFont()
     local fontHeight = font:getHeight()
-    local lineHeight = fontHeight * 1.25
-    local modWidth = font:getWidth("00.00.0000 00:00:00")
-    local sizeWidth = font:getWidth("000.000 XB")
+    local lineHeight = floor(fontHeight * 1.25)
 
     tab._scrollOffset = tab._scrollOffset or 0
     local cursorOffset = tab._scrollOffset + lineHeight * (tab.itemCursor - 1)
@@ -57,44 +68,70 @@ function drawTabItems(tab, x, y, w, h)
     local elemY = y + tab._scrollOffset
 
     lg.setScissor(x, y, w, h)
-    lg.setColor(1, 1, 1)
+
+    local colWidths = {}
+    for i = 1, #tab.columns - 1 do
+        local column = tab.columns[i]
+        if column.enabled then
+            if column.width then
+                if type(column.width) == "string" then
+                    local font = column.font or "regular"
+                    assert(type(font) == "string")
+                    colWidths[i] = fontWidth[font](column.width)
+                elseif type(column.width) == "number" then
+                    colWidths[i] = column.width
+                else
+                    error("Unknown column width type")
+                end
+            else
+                colWidths[i] = 0
+                for _, item in ipairs(tab.items) do
+                    local font = getColumnProperty(tab, item, "font") or "regular"
+                    local text = getColumnString(column, item)
+                    colWidths[i] = math.max(colWidths[i], fontWidth[font](text))
+                end
+            end
+        end
+    end
+
     for i, item in ipairs(tab.items) do
-        local tx, ty = floor(x + 5), floor(elemY + lineHeight/2 - fontHeight/2)
-        if ty > y - lineHeight and ty < y + h then
+        local textY = floor(elemY + lineHeight/2 - fontHeight/2)
+        if textY > y - lineHeight and textY < y + h then
             if item.selected then
                 lg.setColor(0.2, 0.2, 1.0)
                 lg.rectangle("fill", x, elemY, w, lineHeight)
             end
+
             if tab.itemCursor == i then
                 lg.setColor(1, 1, 1, 0.4)
                 lg.rectangle("fill", x, elemY, w, lineHeight)
             end
+
             lg.setColor(0.1, 0.1, 0.1)
             lg.rectangle("line", x, elemY, w, lineHeight)
 
-            lg.setColor(1, 1, 1)
-            lg.setFont(fonts.regular)
-            if tab.showModCol then
-                local modStr = os.date('%d.%m.%Y %H:%M:%S', item.columns.mod)
-                lg.print(modStr, tx, ty)
-                tx = tx + modWidth + 20
-            end
-            if tab.showSizeCol then
-                if item.columns.type ~= "directory" then
-                    local sizeStr = sizeToString(item.columns.size)
-                    local width = font:getWidth(sizeStr)
-                    lg.print(sizeStr, tx + sizeWidth - width, ty)
-                end
-                tx = tx + sizeWidth + 20
-            end
+            local textX = floor(x + 10)
+            for colIndex, column in ipairs(tab.columns) do
+                if column.enabled then
+                    lg.setColor(getColumnProperty(column, item, "color") or {1, 1, 1})
+                    local font = getColumnProperty(column, item, "font") or "regular"
+                    lg.setFont(fonts[font])
 
-            if item.columns.type == "directory" then
-                lg.setColor(0.8, 0.8, 1.0)
-                lg.setFont(fonts.bold)
-            elseif item.columns.type ~= "file" then
-                lg.setFont(fonts.italic)
+                    local text = getColumnString(column, item)
+                    local textWidth = fontWidth[font](text)
+
+                    local justOffset = 0
+                    if column.justify == "right" then
+                        justOffset = colWidths[colIndex] - textWidth
+                    elseif column.justify == "center" then
+                        justOffset = (colWidths[colIndex] - textWidth) / 2
+                    end
+                    lg.print(text, textX + justOffset, textY)
+                    if colIndex < #tab.columns then
+                        textX = textX + colWidths[colIndex] + 20
+                    end
+                end
             end
-            lg.print(item.caption, tx, ty)
         end
         elemY = elemY + lineHeight
     end
@@ -105,7 +142,7 @@ function drawTabItems(tab, x, y, w, h)
     lg.setScissor()
 end
 
-function textRegion(text, x, y, w, h, padding, offsetX)
+local function textRegion(text, x, y, w, h, padding, offsetX)
     padding = padding or 5
     offsetX = offsetX or 0
     x, y, w, h = floor(x), floor(y), floor(w), floor(h)
@@ -119,7 +156,7 @@ function textRegion(text, x, y, w, h, padding, offsetX)
     lg.setScissor()
 end
 
-function drawPane(pane, x, y, w, h)
+local function drawPane(pane, x, y, w, h)
     if pane.tabs then
         local paneSelected = pane == gui.selectedPane
 
@@ -168,7 +205,7 @@ function drawPane(pane, x, y, w, h)
         if numTabs == 0 then
             lg.setColor(1, 1, 1)
             local text = "No open tabs."
-            local tx, ty = x + w/2 - fonts.regular:getWidth(text)/2, y + h/2 -
+            local tx, ty = x + w/2 - fontWidth.regular(text)/2, y + h/2 -
                 fonts.regular:getHeight()/2
             lg.print("No open tabs.", floor(tx), floor(ty))
         end
@@ -221,7 +258,7 @@ function drawPane(pane, x, y, w, h)
                     end
 
                     if entry.annotation then
-                        local annotOffset = inputW - fonts.regular:getWidth(entry.annotation) - 20
+                        local annotOffset = inputW - fontWidth.regular(entry.annotation) - 20
                         lg.setColor(0.7, 0.7, 0.7)
                         textRegion(entry.annotation, inputX, entryY, inputW, lineHeight, nil, annotOffset)
                     end
@@ -264,8 +301,8 @@ function drawgui.draw()
     lg.setColor(0, 0, 0)
     lg.rectangle("line", 0, statusY, w, statusH)
 
-    local font = lg.getFont()
-    local fontH = font:getHeight()
+    local font = "regular"
+    local fontH = fonts[font]:getHeight()
     local ty = floor(statusY + statusH/2 - fontH/2)
 
     lg.setColor(1.0, 1.0, 1.0)
@@ -283,7 +320,7 @@ function drawgui.draw()
             rightText = rightText .. (", %d in clipboard (%s)"):format(
                 #clipData, clipType == "copyfiles" and "copy" or "cut")
         end
-        lg.print(rightText, w - font:getWidth(rightText) - 5, ty)
+        lg.print(rightText, w - fontWidth[font](rightText) - 5, ty)
     end
 
     if message.messageError then

@@ -11,8 +11,7 @@ function Tab:initialize(pane)
     self.path = nil
     self.items = {}
     self.itemCursor = 0
-    self.showModCol = true
-    self.showSizeCol = true
+    self.columns = nil
 end
 
 function Tab:str()
@@ -74,6 +73,16 @@ end
 
 function Tab:getCursorItem()
     return self.items[self.itemCursor]
+end
+
+function Tab:getColumnByKey(name)
+    assert(self.columns)
+    for i, column in ipairs(self.columns) do
+        if column.key == name then
+            return column, i
+        end
+    end
+    return nil, nil
 end
 
 return Tab
